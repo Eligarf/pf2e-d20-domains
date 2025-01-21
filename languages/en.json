@@ -1,5 +1,12 @@
 {
-  "pf2e-confirm-my-bias": {
+  "pf2e-d20-love-tester": {
+    "notifications": {
+      "unlocked": "Logging session {SessionUuid} unlocked"
+    },
+    "enabled": {
+      "name": "Unlock Module",
+      "hint": "Enable module functionality. Reload is required if changed"
+    },
     "logLevel": {
       "name": "Logging Level",
       "none": "No logging",
@@ -11,6 +18,7 @@
       "hint": "Set this to a previous version to force a data migration from the specified version to the current version"
     },
     "config": {
+      "logging": "Logging",
       "debug": "Debug Options"
     }
   }

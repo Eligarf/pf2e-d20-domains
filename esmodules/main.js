@@ -1,5 +1,5 @@
 const CONSOLE_COLORS = ['background: #222; color: #ffff80', 'color: #fff'];
-const MODULE_ID = 'pf2e-confirm-my-bias';
+const MODULE_ID = 'pf2e-d20-love-tester';
 
 function colorizeOutput(format, ...args) {
   return [
@@ -21,50 +21,16 @@ function log(format, ...args) {
   }
 }
 
-export { MODULE_ID, log };
+function interpolateString(str, interpolations) {
+  return str.replace(
+    /\{([A-Za-z0-9_]+)\}/g,
+    (match, key) => interpolations.hasOwnProperty(key) ? interpolations[key] : match
+  );
+}
 
-Hooks.once('init', () => {
-  Hooks.on('createChatMessage', async (message, options, id) => {
-    if (game.userId != id) return;
-    if (!game.settings.get(MODULE_ID, 'autorollSpellDamage')) return;
-    const pf2eFlags = message?.flags?.pf2e;
-
-    // Accept only spell casting of non-attack damaging spells
-    if (!pf2eFlags?.casting) return;
-    const originUuid = pf2eFlags?.origin?.uuid;
-    const origin = originUuid ? await fromUuid(originUuid) : null;
-    if (origin?.traits?.has("attack")) return;
-    if (!message.content.includes('<button type="button" data-action="spell-damage" data-visibility="owner">')) return;
-
-    // Roll the damage!
-    origin?.rollDamage({ target: message.token });
-  });
-
-  game.keybindings.register(MODULE_ID, "observable", {
-    name: `${MODULE_ID}.observable.name`,
-    hint: `${MODULE_ID}.observable.hint`,
-    editable: [
-      { key: "KeyB" }
-    ],
-    onDown: async () => {
-      const conditionHandler = game.settings.get(MODULE_ID, 'conditionHandler');
-      const perceptionApi = (conditionHandler === 'perception') ? getPerceptionApi() : null;
-      const selectedTokens = canvas.tokens.controlled;
-      for (const token of selectedTokens) {
-        if (perceptionApi) await clearPerceptionData(token.document);
-        const conditions = token.actor.items
-          .filter((i) => ['hidden', 'undetected', 'unnoticed'].includes(i.system.slug))
-          .map((i) => i.id);
-        if (conditions.length > 0) {
-          await token.actor.deleteEmbeddedDocuments("Item", conditions);
-        }
-      }
-    }
-  });
-});
+export { MODULE_ID, log, interpolateString };
 
 function migrate(moduleVersion, oldVersion) {
-
   ui.notifications.warn(`Updated PF2e Confirm my Bias data from ${oldVersion} to ${moduleVersion}`);
   return moduleVersion;
 }
@@ -72,6 +38,16 @@ function migrate(moduleVersion, oldVersion) {
 Hooks.once('setup', () => {
   const module = game.modules.get(MODULE_ID);
   const moduleVersion = module.version;
+
+  game.settings.register(MODULE_ID, 'unlocked', {
+    name: game.i18n.localize(`${MODULE_ID}.unlocked.name`),
+    hint: game.i18n.localize(`${MODULE_ID}.unlocked.hint`),
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    requiresReload: true,
+    default: false,
+  });
 
   game.settings.register(MODULE_ID, 'logLevel', {
     name: game.i18n.localize(`${MODULE_ID}.logLevel.name`),
@@ -112,7 +88,8 @@ Hooks.once('setup', () => {
 
 Hooks.on('renderSettingsConfig', (app, html, data) => {
   const sections = [
-     { label: "debug", before: "logLevel" },
+    { label: "logging", before: "unlocked" },
+    { label: "debug", before: "logLevel" },
   ];
   for (const section of sections) {
     $('<div>')

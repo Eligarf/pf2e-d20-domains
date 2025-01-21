@@ -1,8 +1,8 @@
-import { MODULE_ID, log } from "./main";
+import { MODULE_ID, log, interpolateString } from "./main";
 
 const TABLE = ['unknown', 'criticalFailure', 'failure', 'success', 'criticalSuccess'];
 
-const SESSION_UUID = foundry.utils.randomID();
+let SessionUuid;
 
 function getActiveGM() {
   let activeGMs = game.users.filter(u => u.active && u.isGM);
@@ -10,24 +10,38 @@ function getActiveGM() {
   return activeGMs[0] || null;
 }
 
-async function recordRoll({ id, type, roller, vs = null, d20, needs, dos }) {
-  const rollerId = roller ?? getActiveGM().id;
-  const vsId = vs ?? getActiveGM().id;
-  const update = {
-    _id: game.user.id,
-  };
-  update[`flags.${MODULE_ID}.sessions.${SESSION_UUID}.${rollerId}.${d20}.${dos}.${type}.${id}`] = { vs: vsId, needed: needs };
+async function recordRoll({ messageId, type, roller, vs = null, d20, needs, dos, isReroll = false }) {
+  const gmId = getActiveGM().id;
+  const rollerId = roller ?? gmId;
+  const vsId = vs ?? gmId;
+  const adjustedType = (isReroll) ? type + '-reroll' : type;
+  const update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.sessions.${SessionUuid}.${rollerId}.${d20}.${dos}.${adjustedType}.${messageId}`] = { vs: vsId, needed: needs };
   await User.updateDocuments([update]);
 }
 
-Hooks.once('init', () => {
+async function initializeLogging() {
+  const unlocked = game.settings.get(MODULE_ID, 'unlocked');
+  if (!unlocked) return;
+
+  SessionUuid = game.user.flags[MODULE_ID]?.session;
+  if (!SessionUuid) {
+    SessionUuid = foundry.utils.randomID();
+    const update = { _id: game.user.id };
+    update[`flags.${MODULE_ID}.session`] = SessionUuid;
+    await User.updateDocuments([update]);
+  }
+
+  ui.notifications.notify(interpolateString(
+    game.i18n.localize(`${MODULE_ID}.notifications.unlocked`),
+    { 'SessionUuid': SessionUuid }
+  ));
+  
   Hooks.on('createChatMessage', async (message, options, id) => {
     const roll = message.rolls[0];
     const rollOpt = roll?.options;
-    const type = rollOpt?.type;
-    if (!['attack-roll', 'skill-check', 'initiative', 'saving-throw'].includes(type)) {
-      return;
-    }
+    let type = rollOpt?.type;
+    if (!['attack-roll', 'skill-check', 'initiative', 'saving-throw'].includes(type)) return;
 
     // log('createChatMessage', { message, roll, type });
     const roller = game.users.find(u => u.character?.id === message.flags.pf2e.context.actor)?.id;
@@ -40,37 +54,61 @@ Hooks.once('init', () => {
     const dc = context.dc?.value;
     const isReroll = context.isReroll;
     const needs = dc - modifier;
-    await recordRoll({ id: message.id, type, roller, vs, d20, dos, needs, isReroll });
+    await recordRoll({
+      messageId: message.id,
+      type,
+      roller,
+      vs,
+      d20,
+      dos,
+      needs,
+      isReroll
+    });
   });
+
+  async function handleToolbelt(message, toolbelt) {
+    const saves = toolbelt?.targetHelper?.saves;
+    const actorUuid = message?.flags?.pf2e?.origin?.actor;
+    const actor = actorUuid ? await fromUuid(actorUuid) : null;
+    const vs = game.users.find(u => u.character === actor)?.id;
+    for (const tokenId in saves) {
+      const token = canvas.scene.tokens.get(tokenId);
+      const roller = token ? game.users.find((u) => u.character?.id === token?.actor?.id)?.id : null;
+      const save = saves[tokenId];
+      const d20 = save.die;
+      const dos = save.success;
+      const modifier = save.value - save.die;
+      const dc = message.flags['pf2e-toolbelt']?.targetHelper?.save?.dc;
+      const needs = dc - modifier;
+      const isReroll = save?.rerolled === 'new';
+      await recordRoll({
+        messageId: message.id,
+        type: 'saving-throw',
+        roller,
+        vs,
+        d20,
+        dos,
+        needs,
+        isReroll
+      });
+    }
+  }
 
   Hooks.on('updateChatMessage', async (message, delta, options, id) => {
     const toolbelt = delta?.flags['pf2e-toolbelt'];
     // log('updateChatMessage', { message, delta });
 
     if (toolbelt) {
-      const saves = toolbelt?.targetHelper?.saves;
-      const actor = message?.flags?.pf2e?.origin?.actor ? await fromUuid(message?.flags?.pf2e?.origin?.actor) : null;
-      const vs = game.users.find(u => u.character === actor)?.id;
-      for (const tokenId in saves) {
-        const token = canvas.scene.tokens.get(tokenId);
-        const roller = token ? game.users.find((u) => u.character?.id === token?.actor?.id)?.id : null;
-        const save = saves[tokenId];
-        const d20 = save.die;
-        const dos = save.success;
-        const modifier = save.value - save.die;
-        const dc = message.flags['pf2e-toolbelt']?.targetHelper?.save?.dc;
-        const needs = dc - modifier;
-        const isReroll = save?.rerolled === 'new';
-        await recordRoll({ id: message.id, type: 'saving-throw', roller, vs, d20, dos, needs, isReroll });
-      }
-      return;
+      return await handleToolbelt(message, toolbelt);
     }
+
     const roll = delta?.flags?.['pf2e-flatcheck-helper']?.flatchecks?.targets;
     if (!roll) return;
     const flatcheck = message.flags['pf2e-flatcheck-helper'].flatchecks.targets;
-    const actor = message?.flags?.pf2e?.origin?.actor ? await fromUuid(message?.flags?.pf2e?.origin?.actor) : null;
+    const actorUuid = message?.flags?.pf2e?.origin?.actor;
+    const actor = actorUuid ? await fromUuid(actorUuid) : null;
     await recordRoll({
-      id: message.id,
+      messageId: message.id,
       type: 'flatcheck',
       d20: flatcheck.roll,
       needs: flatcheck.dc,
@@ -78,6 +116,14 @@ Hooks.once('init', () => {
       dos: (flatcheck.roll >= flatcheck.dc) ? 'success' : 'failure',
     });
   });
+}
 
-  ui.notifications.notify(`Logging session ${SESSION_UUID}`);
+Hooks.once('ready', async () => {
+  await initializeLogging();
 });
+
+async function resetSessions() {
+  let update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.-=sessions`] = true;
+  await User.updateDocuments([update]);
+}
