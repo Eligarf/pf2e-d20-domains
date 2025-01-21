@@ -31,7 +31,10 @@ function interpolateString(str, interpolations) {
 export { MODULE_ID, log, interpolateString };
 
 function migrate(moduleVersion, oldVersion) {
-  ui.notifications.warn(`Updated PF2e Confirm my Bias data from ${oldVersion} to ${moduleVersion}`);
+  ui.notifications.warn(interpolateString(
+    game.i18n.localize(`${MODULE_ID}.notifications.updated`),
+    { 'oldVersion': oldVersion, 'moduleVersion': moduleVersion }
+  ));
   return moduleVersion;
 }
 

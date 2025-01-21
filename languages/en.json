@@ -1,7 +1,8 @@
 {
   "pf2e-d20-love-tester": {
     "notifications": {
-      "unlocked": "Logging session {SessionUuid} unlocked"
+      "unlocked": "Logging session {SessionUuid} unlocked",
+      "update": "Updated PF2e d20 Love Tester data from {oldVersion} to {moduleVersion}"
     },
     "enabled": {
       "name": "Unlock Module",
