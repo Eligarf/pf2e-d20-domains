@@ -11,6 +11,10 @@
 
 Do your d20's love you, or are they spiteful orbs of hate? This is a central question for all PF2e gamers, and now you can have the empirical data to finally back up your anthropomorphizations! This module logs d20 rolls within their larger context of action type, DC, target, and success level, and provides analysis modes to truly show the quality of the hatred (or, theoretically, love) that d20s bear for their rollers.
 
+## Why would you write a piece of statistical nonsense like this?
+
+This is self-therapy for an extended bad run of luck with my characters. Either I get proof of the "unfairness" of disadvantage my characters labor under, or I make the problem go away by shining the spotlight of truth upon the baleful d20s and they start behaving.
+
 ## Dice logging
 
 ## Supported Modules
