@@ -15,5 +15,5 @@ Do your d20's love you, or are they spiteful orbs of hate? This is a central que
 
 ## Supported Modules
 
-PF2e Toolbelt
-PF2e Utility buttons
+* PF2e Toolbelt
+* PF2e Utility buttons
