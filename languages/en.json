@@ -1,4 +1,17 @@
 {
   "pf2e-confirm-my-bias": {
+    "logLevel": {
+      "name": "Logging Level",
+      "none": "No logging",
+      "debug": "Debug level",
+      "log": "Log level"
+    },
+    "schema": {
+      "name": "Schema Version",
+      "hint": "Set this to a previous version to force a data migration from the specified version to the current version"
+    },
+    "config": {
+      "debug": "Debug Options"
+    }
   }
 }
