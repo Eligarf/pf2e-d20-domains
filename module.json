@@ -1,0 +1,49 @@
+{
+  "id": "pf2e-confirm-my-bias",
+  "title": "PF2e Confirm my Bias",
+  "description": "d20 logger for Pf2e that rates the situational badness of d20 rolls",
+  "authors": [
+    {
+      "name": "Rule",
+      "url": "https://github.com/Eligarf",
+      "discord": "rule6296",
+      "ko-fi": "rule671908"
+    }
+  ],
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "12",
+    "maximum": "12",
+    "verified": "12"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {
+          "verified": "6.8"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "esmodules/main.js"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json",
+      "flags": {}
+    }
+  ],
+  "socket": true,
+  "url": "https://github.com/Eligarf/pf2e-confirm-my-bias",
+  "manifest": "replaced",
+  "download": "replaced",
+  "changelog": "replaced",
+  "bugs": "https://github.com/Eligarf/pf2e-confirm-my-bias/issues",
+  "readme": "replaced",
+  "license": "replaced"
+}
