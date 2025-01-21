@@ -13,7 +13,7 @@ Do your d20's love you, or are they spiteful orbs of hate? This is a central que
 
 ## Why would you write a piece of statistical nonsense like this?
 
-This is self-therapy for an extended bad run of luck with my characters. Either I get proof of the "unfairness" of disadvantage my characters labor under, or I make the problem go away by shining the spotlight of truth upon the baleful d20s and they start behaving.
+This is self-therapy for an extended run of bad luck with my characters. Either I get "proof" of the "unfairness" of disadvantage my characters labor under, or I make the problem go away by shining the *spotlight of truth* upon the baleful d20s and they start behaving with a more uniform distribution.
 
 ## Dice logging
 
