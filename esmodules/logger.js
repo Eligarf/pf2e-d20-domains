@@ -1,8 +1,40 @@
-import { MODULE_ID, log, interpolateString } from "./main";
+import { MODULE_ID, log, interpolateString } from "./main.js";
+
+export { startSession, stopSession, clearSessions, initializeLogging };
 
 const TABLE = ['unknown', 'criticalFailure', 'failure', 'success', 'criticalSuccess'];
 
 let SessionUuid;
+
+async function startSession() {
+  SessionUuid = foundry.utils.randomID();
+  const update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.session`] = SessionUuid;
+  await User.updateDocuments([update]);
+
+  ui.notifications.notify(interpolateString(
+    game.i18n.localize(`${MODULE_ID}.notifications.startSession`),
+    { 'SessionUuid': SessionUuid }
+  ));
+}
+
+async function stopSession() {
+  let update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.-=session`] = true;
+  await User.updateDocuments([update]);
+
+  ui.notifications.notify(interpolateString(
+    game.i18n.localize(`${MODULE_ID}.notifications.stopSession`),
+    { 'SessionUuid': SessionUuid }
+  ));
+}
+
+async function clearSessions() {
+  let update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.-=session`] = true;
+  update[`flags.${MODULE_ID}.-=sessions`] = true;
+  await User.updateDocuments([update]);
+}
 
 function getActiveGM() {
   let activeGMs = game.users.filter(u => u.active && u.isGM);
@@ -24,20 +56,10 @@ async function initializeLogging() {
   const unlocked = game.settings.get(MODULE_ID, 'unlocked');
   if (!unlocked) return;
 
-  SessionUuid = game.user.flags[MODULE_ID]?.session;
-  if (!SessionUuid) {
-    SessionUuid = foundry.utils.randomID();
-    const update = { _id: game.user.id };
-    update[`flags.${MODULE_ID}.session`] = SessionUuid;
-    await User.updateDocuments([update]);
-  }
-
-  ui.notifications.notify(interpolateString(
-    game.i18n.localize(`${MODULE_ID}.notifications.unlocked`),
-    { 'SessionUuid': SessionUuid }
-  ));
-  
   Hooks.on('createChatMessage', async (message, options, id) => {
+    if (!game.settings.get(MODULE_ID, 'logging')) return;
+    if (!game.user.flags[MODULE_ID]?.session) return;
+    
     const roll = message.rolls[0];
     const rollOpt = roll?.options;
     let type = rollOpt?.type;
@@ -95,7 +117,10 @@ async function initializeLogging() {
   }
 
   Hooks.on('updateChatMessage', async (message, delta, options, id) => {
-    const toolbelt = delta?.flags['pf2e-toolbelt'];
+    if (!game.settings.get(MODULE_ID, 'logging')) return;
+    if (!game.user.flags[MODULE_ID]?.session) return;
+
+     const toolbelt = delta?.flags['pf2e-toolbelt'];
     // log('updateChatMessage', { message, delta });
 
     if (toolbelt) {
@@ -116,14 +141,4 @@ async function initializeLogging() {
       dos: (flatcheck.roll >= flatcheck.dc) ? 'success' : 'failure',
     });
   });
-}
-
-Hooks.once('ready', async () => {
-  await initializeLogging();
-});
-
-async function resetSessions() {
-  let update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.-=sessions`] = true;
-  await User.updateDocuments([update]);
 }

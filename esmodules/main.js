@@ -1,3 +1,6 @@
+export { MODULE_ID, log, interpolateString };
+import { initializeLogging, startSession, stopSession, clearSessions } from "./logger.js";
+
 const CONSOLE_COLORS = ['background: #222; color: #ffff80', 'color: #fff'];
 const MODULE_ID = 'pf2e-d20-love-tester';
 
@@ -28,8 +31,6 @@ function interpolateString(str, interpolations) {
   );
 }
 
-export { MODULE_ID, log, interpolateString };
-
 function migrate(moduleVersion, oldVersion) {
   ui.notifications.warn(interpolateString(
     game.i18n.localize(`${MODULE_ID}.notifications.updated`),
@@ -49,6 +50,14 @@ Hooks.once('setup', () => {
     config: true,
     type: Boolean,
     requiresReload: true,
+    default: false,
+  });
+
+  game.settings.register(MODULE_ID, "logging", {
+    name: game.i18n.localize(`${MODULE_ID}.logging.name`),
+    hint: game.i18n.localize(`${MODULE_ID}.logging.hint`),
+    scope: 'client',
+    type: Boolean,
     default: false,
   });
 
@@ -87,6 +96,11 @@ Hooks.once('setup', () => {
   }
 
   log(`Setup ${moduleVersion}`);
+});
+
+Hooks.once('ready', async () => {
+  await initializeLogging();
+  log('Ready');
 });
 
 Hooks.on('renderSettingsConfig', (app, html, data) => {
