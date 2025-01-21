@@ -4,9 +4,9 @@
       "unlocked": "Logging session {SessionUuid} unlocked",
       "update": "Updated PF2e d20 Love Tester data from {oldVersion} to {moduleVersion}"
     },
-    "enabled": {
+    "unlocked": {
       "name": "Unlock Module",
-      "hint": "Enable module functionality. Reload is required if changed"
+      "hint": "Unlock module functionality. Reload is required if changed"
     },
     "logLevel": {
       "name": "Logging Level",
