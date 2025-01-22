@@ -4,14 +4,19 @@
       "createSession": "Session {SessionUuid} created",
       "terminateSession": "Session {SessionUuid} terminated",
       "noSession": "No active Session to record rolls",
-      "update": "Updated PF2e d20 Love Meter data from {oldVersion} to {moduleVersion}"
+      "update": "Updated PF2e d20 Love Meter data from {oldVersion} to {moduleVersion}",
+      "erased": "All roll data erased"
     },
     "control": {
       "title": "d20 Love Meter",
       "startLogging": "Start logging rolls",
       "stopLogging": "Stop logging rolls",
       "endSession": "End Session",
-      "analyze": "Analyze sessions"
+      "analyze": "Analyze {roller}",
+      "erase": "Erase all logged data"
+    },
+    "dialog": {
+      "content": "Confirm erasing all rolls?"
     },
     "unlocked": {
       "name": "Unlock Module",

@@ -1,5 +1,5 @@
 export { MODULE_ID, log, interpolateString };
-import { initializeLogging, createSession, startLogging, stopLogging, endSession, clearSessions } from "./logger.js";
+import { initializeLogging, startLogging, stopLogging, endSession, eraseData } from "./logger.js";
 
 const CONSOLE_COLORS = ['background: #222; color: #ffff80', 'color: #fff'];
 const MODULE_ID = 'pf2e-d20-love-meter';
@@ -123,6 +123,11 @@ function initializeLayer() {
   CONFIG.Canvas.layers.d20LoveMeter = { layerClass: InteractionLayer, group: 'interface' };
 }
 
+async function analyze(rollerId) {
+  const roller = game.users.get(rollerId);
+  log(`Analyze ${roller.name}`);
+}
+
 Hooks.on('getSceneControlButtons', (controls) => {
   if (!game.settings.get(MODULE_ID, 'unlocked')) return;
   const startLoggingTool = {
@@ -146,13 +151,39 @@ Hooks.on('getSceneControlButtons', (controls) => {
     visible: true,
     onClick: async () => { await endSession(); }
   };
-  const analyzeTool = {
-    icon: "fas fa-chart-simple",
-    name: "analyze",
-    title: `${MODULE_ID}.control.analyze`,
+  let tools = [startLoggingTool, stopLoggingTool, endSessionTool];
+  const rollers = game.user.flags[MODULE_ID]?.rollers;
+  if (rollers) {
+    for (let rollerId in rollers) {
+      const roller = game.users.get(rollerId);
+      if (!roller) continue;
+      tools.push({
+        icon: "fas fa-chart-simple",
+        name: `analyze-${roller.name}`,
+        title: interpolateString(
+          game.i18n.localize(`${MODULE_ID}.control.analyze`),
+          { 'roller': roller.name }
+        ),
+        visible: true,
+        onClick: async () => { await analyze(rollerId); }
+      });
+    }
+  }
+  tools.push({
+    icon: "fas fa-trash",
+    name: "erase",
+    title: `${MODULE_ID}.control.erase`,
     visible: true,
-    onClick: async () => {  }
-  };
+    onClick: async () => {
+      const proceed = await foundry.applications.api.DialogV2.confirm({
+        content: game.i18n.localize(`${MODULE_ID}.dialog.content`),
+        rejectClose: false,
+        modal: true
+      });
+      if (proceed)
+        await eraseData();
+    }
+  });
   controls.push({
     name: MODULE_ID,
     title: `${MODULE_ID}.control.title`,
@@ -160,6 +191,6 @@ Hooks.on('getSceneControlButtons', (controls) => {
     layer: 'd20LoveMeter',
     visible: true,
     activeTool: '',
-    tools: [startLoggingTool, stopLoggingTool, endSessionTool, analyzeTool]
+    tools: tools
   });
 });

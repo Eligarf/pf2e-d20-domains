@@ -1,6 +1,6 @@
 import { MODULE_ID, log, interpolateString } from "./main.js";
 
-export { initializeLogging, createSession, startLogging, stopLogging, endSession, clearSessions };
+export { initializeLogging, createSession, startLogging, stopLogging, endSession, eraseData };
 
 const TABLE = ['unknown', 'criticalFailure', 'failure', 'success', 'criticalSuccess'];
 
@@ -11,6 +11,8 @@ async function createSession() {
   g_sessionUuid = foundry.utils.randomID();
   const update = { _id: game.user.id };
   update[`flags.${MODULE_ID}.session`] = g_sessionUuid;
+  // myDate.toGMTString()+"\n"+ myDate.toLocaleString()
+  update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.started`] = new Date(Date.now());
   await User.updateDocuments([update]);
 
   ui.notifications.notify(interpolateString(
@@ -29,7 +31,13 @@ function stopLogging() {
 }
 
 async function endSession() {
+  let update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.-=session`] = true;
+
+  stopLogging();
+
   if (g_sessionUuid) {
+    update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.ended`] = new Date(Date.now());
     ui.notifications.notify(interpolateString(
       game.i18n.localize(`${MODULE_ID}.notifications.terminateSession`),
       { 'SessionUuid': g_sessionUuid }
@@ -37,20 +45,18 @@ async function endSession() {
     g_sessionUuid = null;
   }
 
-  stopLogging();
-
-  let update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.-=session`] = true;
   await User.updateDocuments([update]);
 
   g_sessionWarned = false;
 }
 
-async function clearSessions() {
+async function eraseData() {
   endSession();
   let update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.-=rollers`] = true;
   update[`flags.${MODULE_ID}.-=sessions`] = true;
   await User.updateDocuments([update]);
+  ui.notifications.warn(game.i18n.localize(`${MODULE_ID}.notifications.erased`));
 }
 
 function getActiveGM() {
@@ -73,7 +79,7 @@ async function recordRoll({ messageId, type, roller, vs = null, d20, needs, dos,
   const vsId = vs ?? gmId;
   const adjustedType = (isReroll) ? type + '-reroll' : type;
   const update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.${rollerId}.${d20}.${dos}.${adjustedType}.${messageId}`] = { vs: vsId, needed: needs };
+  update[`flags.${MODULE_ID}.rollers.${rollerId}.${g_sessionUuid}.${d20}.${dos}.${adjustedType}.${messageId}`] = { vs: vsId, needed: needs };
   await User.updateDocuments([update]);
 }
 
@@ -89,9 +95,15 @@ async function initializeLogging() {
     const roll = message.rolls[0];
     const rollOpt = roll?.options;
     let type = rollOpt?.type;
-    if (!['attack-roll', 'skill-check', 'initiative', 'saving-throw'].includes(type)) return;
-
     // log('createChatMessage', { message, roll, type });
+    if (![
+      'attack-roll',
+      'skill-check',
+      'initiative',
+      'saving-throw',
+      'perception-check',
+    ].includes(type)) return;
+
     const roller = game.users.find(u => u.character?.id === message.flags.pf2e.context.actor)?.id;
     const d20 = roll.dice[0].total;
     const dos = TABLE[1 + (rollOpt?.degreeOfSuccess ?? -1)];
