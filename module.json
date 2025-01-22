@@ -1,6 +1,6 @@
 {
-  "id": "pf2e-d20-love-tester",
-  "title": "PF2e d20 Love Tester",
+  "id": "pf2e-d20-love-meter",
+  "title": "PF2e d20 Love Meter",
   "description": "Answers the question of whether your PF2e d20's love you or are spiteful orbs of hate",
   "authors": [
     {
@@ -40,11 +40,11 @@
     }
   ],
   "socket": true,
-  "url": "https://github.com/Eligarf/pf2e-d20-love-tester",
+  "url": "https://github.com/Eligarf/pf2e-d20-love-meter",
   "manifest": "replaced",
   "download": "replaced",
   "changelog": "replaced",
-  "bugs": "https://github.com/Eligarf/pf2e-d20-love-tester/issues",
+  "bugs": "https://github.com/Eligarf/pf2e-d20-love-meter/issues",
   "readme": "replaced",
   "license": "replaced"
 }

@@ -1,8 +1,17 @@
 {
-  "pf2e-d20-love-tester": {
+  "pf2e-d20-love-meter": {
     "notifications": {
-      "unlocked": "Logging session {SessionUuid} unlocked",
-      "update": "Updated PF2e d20 Love Tester data from {oldVersion} to {moduleVersion}"
+      "createSession": "Session {SessionUuid} created",
+      "terminateSession": "Session {SessionUuid} terminated",
+      "noSession": "No active Session to record rolls",
+      "update": "Updated PF2e d20 Love Meter data from {oldVersion} to {moduleVersion}"
+    },
+    "control": {
+      "title": "d20 Love Meter",
+      "startLogging": "Start logging rolls",
+      "stopLogging": "Stop logging rolls",
+      "endSession": "End Session",
+      "analyze": "Analyze sessions"
     },
     "unlocked": {
       "name": "Unlock Module",

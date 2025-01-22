@@ -1,37 +1,54 @@
 import { MODULE_ID, log, interpolateString } from "./main.js";
 
-export { startSession, stopSession, clearSessions, initializeLogging };
+export { initializeLogging, createSession, startLogging, stopLogging, endSession, clearSessions };
 
 const TABLE = ['unknown', 'criticalFailure', 'failure', 'success', 'criticalSuccess'];
 
-let SessionUuid;
+let g_sessionUuid;
+let g_sessionWarned = false;
 
-async function startSession() {
-  SessionUuid = foundry.utils.randomID();
+async function createSession() {
+  g_sessionUuid = foundry.utils.randomID();
   const update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.session`] = SessionUuid;
+  update[`flags.${MODULE_ID}.session`] = g_sessionUuid;
   await User.updateDocuments([update]);
 
   ui.notifications.notify(interpolateString(
-    game.i18n.localize(`${MODULE_ID}.notifications.startSession`),
-    { 'SessionUuid': SessionUuid }
+    game.i18n.localize(`${MODULE_ID}.notifications.createSession`),
+    { 'SessionUuid': g_sessionUuid }
   ));
 }
 
-async function stopSession() {
+async function startLogging() {
+  if (!g_sessionUuid) await createSession();
+  game.settings.set(MODULE_ID, 'logging', true);
+}
+
+function stopLogging() {
+  game.settings.set(MODULE_ID, 'logging', false);
+}
+
+async function endSession() {
+  if (g_sessionUuid) {
+    ui.notifications.notify(interpolateString(
+      game.i18n.localize(`${MODULE_ID}.notifications.terminateSession`),
+      { 'SessionUuid': g_sessionUuid }
+    ));
+    g_sessionUuid = null;
+  }
+
+  stopLogging();
+
   let update = { _id: game.user.id };
   update[`flags.${MODULE_ID}.-=session`] = true;
   await User.updateDocuments([update]);
 
-  ui.notifications.notify(interpolateString(
-    game.i18n.localize(`${MODULE_ID}.notifications.stopSession`),
-    { 'SessionUuid': SessionUuid }
-  ));
+  g_sessionWarned = false;
 }
 
 async function clearSessions() {
+  endSession();
   let update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.-=session`] = true;
   update[`flags.${MODULE_ID}.-=sessions`] = true;
   await User.updateDocuments([update]);
 }
@@ -43,12 +60,20 @@ function getActiveGM() {
 }
 
 async function recordRoll({ messageId, type, roller, vs = null, d20, needs, dos, isReroll = false }) {
+  if (!g_sessionUuid) {
+    if (!g_sessionWarned) {
+      g_sessionWarned = true;
+      ui.notifications.warn(game.i18n.localize(`${MODULE_ID}.notifications.noSession`));
+    }
+    return;
+  }
+
   const gmId = getActiveGM().id;
   const rollerId = roller ?? gmId;
   const vsId = vs ?? gmId;
   const adjustedType = (isReroll) ? type + '-reroll' : type;
   const update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.sessions.${SessionUuid}.${rollerId}.${d20}.${dos}.${adjustedType}.${messageId}`] = { vs: vsId, needed: needs };
+  update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.${rollerId}.${d20}.${dos}.${adjustedType}.${messageId}`] = { vs: vsId, needed: needs };
   await User.updateDocuments([update]);
 }
 
@@ -56,10 +81,11 @@ async function initializeLogging() {
   const unlocked = game.settings.get(MODULE_ID, 'unlocked');
   if (!unlocked) return;
 
+  g_sessionUuid = game.user.flags[MODULE_ID]?.session;
+
   Hooks.on('createChatMessage', async (message, options, id) => {
     if (!game.settings.get(MODULE_ID, 'logging')) return;
-    if (!game.user.flags[MODULE_ID]?.session) return;
-    
+
     const roll = message.rolls[0];
     const rollOpt = roll?.options;
     let type = rollOpt?.type;
@@ -118,9 +144,8 @@ async function initializeLogging() {
 
   Hooks.on('updateChatMessage', async (message, delta, options, id) => {
     if (!game.settings.get(MODULE_ID, 'logging')) return;
-    if (!game.user.flags[MODULE_ID]?.session) return;
 
-     const toolbelt = delta?.flags['pf2e-toolbelt'];
+    const toolbelt = delta?.flags['pf2e-toolbelt'];
     // log('updateChatMessage', { message, delta });
 
     if (toolbelt) {

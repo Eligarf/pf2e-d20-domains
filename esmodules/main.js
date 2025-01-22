@@ -1,8 +1,8 @@
 export { MODULE_ID, log, interpolateString };
-import { initializeLogging, startSession, stopSession, clearSessions } from "./logger.js";
+import { initializeLogging, createSession, startLogging, stopLogging, endSession, clearSessions } from "./logger.js";
 
 const CONSOLE_COLORS = ['background: #222; color: #ffff80', 'color: #fff'];
-const MODULE_ID = 'pf2e-d20-love-tester';
+const MODULE_ID = 'pf2e-d20-love-meter';
 
 function colorizeOutput(format, ...args) {
   return [
@@ -95,6 +95,7 @@ Hooks.once('setup', () => {
     });
   }
 
+  initializeLayer();
   log(`Setup ${moduleVersion}`);
 });
 
@@ -115,4 +116,50 @@ Hooks.on('renderSettingsConfig', (app, html, data) => {
       .insertBefore($(`[name="${MODULE_ID}.${section.before}"]`)
         .parents('div.form-group:first'));
   }
+});
+
+function initializeLayer() {
+  if (!game.settings.get(MODULE_ID, 'unlocked')) return;
+  CONFIG.Canvas.layers.d20LoveMeter = { layerClass: InteractionLayer, group: 'interface' };
+}
+
+Hooks.on('getSceneControlButtons', (controls) => {
+  if (!game.settings.get(MODULE_ID, 'unlocked')) return;
+  const startLoggingTool = {
+    icon: "fas fa-play",
+    name: "start-logging",
+    title: `${MODULE_ID}.control.startLogging`,
+    visible: true,
+    onClick: async () => { await startLogging(); }
+  };
+  const stopLoggingTool = {
+    icon: "fas fa-pause",
+    name: "stop-logging",
+    title: `${MODULE_ID}.control.stopLogging`,
+    visible: true,
+    onClick: async () => { await stopLogging(); }
+  };
+  const endSessionTool = {
+    icon: "fas fa-flag-checkered",
+    name: "end-session",
+    title: `${MODULE_ID}.control.endSession`,
+    visible: true,
+    onClick: async () => { await endSession(); }
+  };
+  const analyzeTool = {
+    icon: "fas fa-chart-simple",
+    name: "analyze",
+    title: `${MODULE_ID}.control.analyze`,
+    visible: true,
+    onClick: async () => {  }
+  };
+  controls.push({
+    name: MODULE_ID,
+    title: `${MODULE_ID}.control.title`,
+    icon: game.settings.get(MODULE_ID, 'logging') ? "fa fa-pen-to-square" : 'fas fa-dice-d20',
+    layer: 'd20LoveMeter',
+    visible: true,
+    activeTool: '',
+    tools: [startLoggingTool, stopLoggingTool, endSessionTool, analyzeTool]
+  });
 });
