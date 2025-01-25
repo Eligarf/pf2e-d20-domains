@@ -24,10 +24,12 @@ async function createSession() {
 async function startLogging() {
   if (!g_sessionUuid) await createSession();
   game.settings.set(MODULE_ID, 'logging', true);
+  log(`start logging session ${g_sessionUuid}`);
 }
 
 function stopLogging() {
   game.settings.set(MODULE_ID, 'logging', false);
+  log(`stop logging session ${g_sessionUuid}`);
 }
 
 async function endSession() {
@@ -42,6 +44,7 @@ async function endSession() {
       game.i18n.localize(`${MODULE_ID}.notifications.terminateSession`),
       { 'SessionUuid': g_sessionUuid }
     ));
+    log(`finishing session ${g_sessionUuid}`);
     g_sessionUuid = null;
   }
 
@@ -51,6 +54,7 @@ async function endSession() {
 }
 
 async function eraseData() {
+  log('erasing all roll data');
   endSession();
   let update = { _id: game.user.id };
   update[`flags.${MODULE_ID}.-=rolls`] = true;
@@ -116,11 +120,14 @@ async function initializeLogging() {
     if (message.flavor == 'Devise a Stratagem')
       return await onDeviseAStratagem(message, roll);
 
-    //The vanilla chat card handles lots of stuff
+    // The vanilla chat card handles lots of stuff
     const rollOpt = roll?.options;
     const type = rollOpt?.type;
-    if (type)
-      return await onVanillaAction(message, roll, rollOpt, type);
+    if (type) return await onVanillaAction(message, roll, rollOpt, type);
+  
+    // Recall Knowledge is a good bet
+    if (message.flavor.includes('class="pf2e-hud-rk') || message.content.includes('<strong>Recall Knowledge</strong>'))
+      return await onRecallKnowledge(message, roll);
   });
 
   Hooks.on('updateChatMessage', async (message, delta, options, id) => {
@@ -134,7 +141,7 @@ async function initializeLogging() {
 
     const flatcheck = delta?.flags?.['pf2e-flatcheck-helper']?.flatchecks?.targets;
     if (flatcheck)
-      return await onFlatCheck(message, delta);
+      return await onFlatCheckHelper(message, delta);
   });
 }
 
@@ -174,6 +181,17 @@ async function onVanillaAction(message, roll, rollOpt, type) {
   });
 }
 
+async function onRecallKnowledge(message, roll) {
+  const roller = game.users.find(u => u.character?.id === message.speaker.actor)?.id;
+  const d20 = roll.dice[0].total;
+  await recordRoll({
+    messageId: message.id,
+    type: 'skill-check',
+    roller,
+    d20,
+  });
+}
+
 async function onToolBelt(message, toolbelt) {
   // log('onToolBelt',{message, toolbelt});
   const saves = toolbelt?.targetHelper?.saves;
@@ -203,7 +221,7 @@ async function onToolBelt(message, toolbelt) {
   }
 }
 
-async function onFlatCheck(message, delta) {
+async function onFlatCheckHelper(message, delta) {
   const flatcheck = message.flags['pf2e-flatcheck-helper'].flatchecks.targets;
   const actorUuid = message?.flags?.pf2e?.origin?.actor;
   const actor = actorUuid ? await fromUuid(actorUuid) : null;

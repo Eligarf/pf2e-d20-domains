@@ -1,3 +1,6 @@
+# v0.5.0
+* Capture Recall Knowledge rolls from pf2e-hud and pf2e-workbench BAM 
+
 # v0.4.0
 * Rework logs to be friendly to filtering
 * Add timeline button
