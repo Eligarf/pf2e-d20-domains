@@ -1,3 +1,8 @@
+# v0.4.0
+* Rework logs to be friendly to filtering
+* Add timeline button
+* Capture devise a stratagem and flat rolls
+
 # v0.3.0
 * Added data eraser
 * Record start/stop time for sessions
