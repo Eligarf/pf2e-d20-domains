@@ -10,13 +10,16 @@
     "control": {
       "title": "d20 Love Meter",
       "startLogging": "Start logging rolls",
-      "stopLogging": "Stop logging rolls",
-      "endSession": "End Session",
-      "analyze": "Analyze {roller}",
-      "erase": "Erase all logged data"
+      "stopLogging": "Pause logging rolls",
+      "endSession": "End session",
+      "histogram": "Show roll histogram",
+      "timeline": "Show roll timeline",
+      "erase": "Erase all rolls"
     },
     "dialog": {
-      "content": "Confirm erasing all rolls?"
+      "erase": {
+        "content": "Confirm erasing all rolls?"
+      }
     },
     "unlocked": {
       "name": "Unlock Module",

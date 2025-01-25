@@ -53,6 +53,7 @@ async function endSession() {
 async function eraseData() {
   endSession();
   let update = { _id: game.user.id };
+  update[`flags.${MODULE_ID}.-=rolls`] = true;
   update[`flags.${MODULE_ID}.-=rollers`] = true;
   update[`flags.${MODULE_ID}.-=sessions`] = true;
   await User.updateDocuments([update]);
@@ -65,7 +66,7 @@ function getActiveGM() {
   return activeGMs[0] || null;
 }
 
-async function recordRoll({ messageId, type, roller, vs = null, d20, needs, dos, isReroll = false }) {
+async function recordRoll({ messageId, type, roller, vs = null, d20, needs = NaN, dos = TABLE[0], isReroll = false }) {
   if (!g_sessionUuid) {
     if (!g_sessionWarned) {
       g_sessionWarned = true;
@@ -79,7 +80,17 @@ async function recordRoll({ messageId, type, roller, vs = null, d20, needs, dos,
   const vsId = vs ?? gmId;
   const adjustedType = (isReroll) ? type + '-reroll' : type;
   const update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.rollers.${rollerId}.${g_sessionUuid}.${d20}.${dos}.${adjustedType}.${messageId}`] = { vs: vsId, needed: needs };
+  let entry = {
+    session: g_sessionUuid,
+    now: new Date(Date.now()),
+    type: adjustedType,
+    messageId,
+  };
+  if (rollerId !== gmId) entry.rollerId = rollerId;
+  if (vsId !== gmId) entry.vsId = vsId;
+  if (dos !== TABLE[0]) entry.dos = dos;
+  if (!isNaN(needs)) entry.needed = needs;
+  update[`flags.${MODULE_ID}.rolls.${d20}.${foundry.utils.randomID()}`] = entry;
   await User.updateDocuments([update]);
 }
 
@@ -93,30 +104,95 @@ async function initializeLogging() {
     if (!game.settings.get(MODULE_ID, 'logging')) return;
 
     const roll = message.rolls[0];
-    const rollOpt = roll?.options;
-    let type = rollOpt?.type;
-    // log('createChatMessage', { message, roll, type });
-    if (![
-      'attack-roll',
-      'skill-check',
-      'initiative',
-      'saving-throw',
-      'perception-check',
-    ].includes(type)) return;
+    // log('createChatMessage', { message, roll });
+    if (!roll)
+      return;
 
-    const roller = game.users.find(u => u.character?.id === message.flags.pf2e.context.actor)?.id;
-    const d20 = roll.dice[0].total;
-    const dos = TABLE[1 + (rollOpt?.degreeOfSuccess ?? -1)];
-    const modifier = rollOpt.totalModifier;
-    const context = message.flags.pf2e.context;
-    const targetToken = context?.target?.token ? await fromUuid(context?.target?.token) : null;
-    const vs = targetToken ? game.users.find((u) => u.character?.id === targetToken.actor?.id)?.id : null;
-    const dc = context.dc?.value;
-    const isReroll = context.isReroll;
+    // Only look at d20s and ignore damage rolls
+    if (roll.terms?.[0]?.faces !== 20) return;
+    if (message.flags?.pf2e?.context?.type === 'damage-roll') return;
+
+    // Devise a stratagem has a terrible signature so we have to look for it first
+    if (message.flavor == 'Devise a Stratagem')
+      return await onDeviseAStratagem(message, roll);
+
+    //The vanilla chat card handles lots of stuff
+    const rollOpt = roll?.options;
+    const type = rollOpt?.type;
+    if (type)
+      return await onVanillaAction(message, roll, rollOpt, type);
+  });
+
+  Hooks.on('updateChatMessage', async (message, delta, options, id) => {
+    if (!game.settings.get(MODULE_ID, 'logging')) return;
+
+    const toolbelt = delta?.flags?.['pf2e-toolbelt'];
+    // log('updateChatMessage', { message, delta, toolbelt });
+
+    if (toolbelt)
+      return await onToolBelt(message, toolbelt);
+
+    const flatcheck = delta?.flags?.['pf2e-flatcheck-helper']?.flatchecks?.targets;
+    if (flatcheck)
+      return await onFlatCheck(message, delta);
+  });
+}
+
+async function onDeviseAStratagem(message, roll) {
+  const roller = game.users.find(u => u.character?.id === message.speaker.actor)?.id;
+  const d20 = roll.dice[0].total;
+  const dos = TABLE[1 + (roll?.options?.degreeOfSuccess ?? -1)];
+  await recordRoll({
+    messageId: message.id,
+    type: 'devise-a-stratagem',
+    roller,
+    d20,
+    dos,
+  });
+}
+
+async function onVanillaAction(message, roll, rollOpt, type) {
+  const roller = game.users.find(u => u.character?.id === message.flags.pf2e.context.actor)?.id;
+  const d20 = roll.dice[0].total;
+  const dos = TABLE[1 + (rollOpt?.degreeOfSuccess ?? -1)];
+  const modifier = rollOpt.totalModifier;
+  const context = message.flags.pf2e.context;
+  const targetToken = context?.target?.token ? await fromUuid(context?.target?.token) : null;
+  const vs = targetToken ? game.users.find((u) => u.character?.id === targetToken.actor?.id)?.id : null;
+  const dc = context.dc?.value;
+  const isReroll = context.isReroll;
+  const needs = dc - modifier;
+  await recordRoll({
+    messageId: message.id,
+    type,
+    roller,
+    vs,
+    d20,
+    dos,
+    needs,
+    isReroll
+  });
+}
+
+async function onToolBelt(message, toolbelt) {
+  // log('onToolBelt',{message, toolbelt});
+  const saves = toolbelt?.targetHelper?.saves;
+  const actorUuid = message?.flags?.pf2e?.origin?.actor;
+  const actor = actorUuid ? await fromUuid(actorUuid) : null;
+  const vs = game.users.find(u => u.character?.id === actor.id)?.id;
+  for (const tokenId in saves) {
+    const token = canvas.scene.tokens.get(tokenId);
+    const roller = token ? game.users.find((u) => u.character?.id === token?.actor?.id)?.id : null;
+    const save = saves[tokenId];
+    const d20 = save.die;
+    const dos = save.success;
+    const modifier = save.value - save.die;
+    const dc = message.flags['pf2e-toolbelt']?.targetHelper?.save?.dc;
     const needs = dc - modifier;
+    const isReroll = save?.rerolled === 'new';
     await recordRoll({
       messageId: message.id,
-      type,
+      type: 'saving-throw',
       roller,
       vs,
       d20,
@@ -124,58 +200,19 @@ async function initializeLogging() {
       needs,
       isReroll
     });
-  });
-
-  async function handleToolbelt(message, toolbelt) {
-    const saves = toolbelt?.targetHelper?.saves;
-    const actorUuid = message?.flags?.pf2e?.origin?.actor;
-    const actor = actorUuid ? await fromUuid(actorUuid) : null;
-    const vs = game.users.find(u => u.character === actor)?.id;
-    for (const tokenId in saves) {
-      const token = canvas.scene.tokens.get(tokenId);
-      const roller = token ? game.users.find((u) => u.character?.id === token?.actor?.id)?.id : null;
-      const save = saves[tokenId];
-      const d20 = save.die;
-      const dos = save.success;
-      const modifier = save.value - save.die;
-      const dc = message.flags['pf2e-toolbelt']?.targetHelper?.save?.dc;
-      const needs = dc - modifier;
-      const isReroll = save?.rerolled === 'new';
-      await recordRoll({
-        messageId: message.id,
-        type: 'saving-throw',
-        roller,
-        vs,
-        d20,
-        dos,
-        needs,
-        isReroll
-      });
-    }
   }
+}
 
-  Hooks.on('updateChatMessage', async (message, delta, options, id) => {
-    if (!game.settings.get(MODULE_ID, 'logging')) return;
-
-    const toolbelt = delta?.flags['pf2e-toolbelt'];
-    // log('updateChatMessage', { message, delta });
-
-    if (toolbelt) {
-      return await handleToolbelt(message, toolbelt);
-    }
-
-    const roll = delta?.flags?.['pf2e-flatcheck-helper']?.flatchecks?.targets;
-    if (!roll) return;
-    const flatcheck = message.flags['pf2e-flatcheck-helper'].flatchecks.targets;
-    const actorUuid = message?.flags?.pf2e?.origin?.actor;
-    const actor = actorUuid ? await fromUuid(actorUuid) : null;
-    await recordRoll({
-      messageId: message.id,
-      type: 'flatcheck',
-      d20: flatcheck.roll,
-      needs: flatcheck.dc,
-      roller: game.users.find(u => u.character?.id === actor?.id)?.id,
-      dos: (flatcheck.roll >= flatcheck.dc) ? 'success' : 'failure',
-    });
+async function onFlatCheck(message, delta) {
+  const flatcheck = message.flags['pf2e-flatcheck-helper'].flatchecks.targets;
+  const actorUuid = message?.flags?.pf2e?.origin?.actor;
+  const actor = actorUuid ? await fromUuid(actorUuid) : null;
+  await recordRoll({
+    messageId: message.id,
+    type: 'flat-check',
+    d20: flatcheck.roll,
+    needs: flatcheck.dc,
+    roller: game.users.find(u => u.character?.id === actor?.id)?.id,
+    dos: (flatcheck.roll >= flatcheck.dc) ? 'success' : 'failure',
   });
 }
