@@ -21,6 +21,12 @@
         "content": "Confirm erasing all rolls?"
       }
     },
+    "histogram": {
+      "title": "Rolls histogram"
+    },
+    "timeline": {
+      "title": "Rolls timeline"
+    },
     "unlocked": {
       "name": "Unlock Module",
       "hint": "Unlock module functionality. Reload is required if changed"

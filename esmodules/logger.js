@@ -1,8 +1,24 @@
 import { MODULE_ID, log, interpolateString } from "./main.js";
 
-export { initializeLogging, createSession, startLogging, stopLogging, endSession, eraseData };
+/*global foundry, game, Hooks*/
+/*eslint no-undef: "error"*/
 
-const TABLE = ['unknown', 'criticalFailure', 'failure', 'success', 'criticalSuccess'];
+export {
+  initializeLogging,
+  createSession,
+  startLogging,
+  stopLogging,
+  endSession,
+  eraseData,
+};
+
+const TABLE = [
+  "unknown",
+  "criticalFailure",
+  "failure",
+  "success",
+  "criticalSuccess",
+];
 
 let g_sessionUuid;
 let g_sessionWarned = false;
@@ -12,23 +28,27 @@ async function createSession() {
   const update = { _id: game.user.id };
   update[`flags.${MODULE_ID}.session`] = g_sessionUuid;
   // myDate.toGMTString()+"\n"+ myDate.toLocaleString()
-  update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.started`] = new Date(Date.now());
+  update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.started`] = new Date(
+    Date.now(),
+  );
   await User.updateDocuments([update]);
 
-  ui.notifications.notify(interpolateString(
-    game.i18n.localize(`${MODULE_ID}.notifications.createSession`),
-    { 'SessionUuid': g_sessionUuid }
-  ));
+  ui.notifications.notify(
+    interpolateString(
+      game.i18n.localize(`${MODULE_ID}.notifications.createSession`),
+      { SessionUuid: g_sessionUuid },
+    ),
+  );
 }
 
 async function startLogging() {
   if (!g_sessionUuid) await createSession();
-  game.settings.set(MODULE_ID, 'logging', true);
+  game.settings.set(MODULE_ID, "logging", true);
   log(`start logging session ${g_sessionUuid}`);
 }
 
 function stopLogging() {
-  game.settings.set(MODULE_ID, 'logging', false);
+  game.settings.set(MODULE_ID, "logging", false);
   log(`stop logging session ${g_sessionUuid}`);
 }
 
@@ -39,11 +59,15 @@ async function endSession() {
   stopLogging();
 
   if (g_sessionUuid) {
-    update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.ended`] = new Date(Date.now());
-    ui.notifications.notify(interpolateString(
-      game.i18n.localize(`${MODULE_ID}.notifications.terminateSession`),
-      { 'SessionUuid': g_sessionUuid }
-    ));
+    update[`flags.${MODULE_ID}.sessions.${g_sessionUuid}.ended`] = new Date(
+      Date.now(),
+    );
+    ui.notifications.notify(
+      interpolateString(
+        game.i18n.localize(`${MODULE_ID}.notifications.terminateSession`),
+        { SessionUuid: g_sessionUuid },
+      ),
+    );
     log(`finishing session ${g_sessionUuid}`);
     g_sessionUuid = null;
   }
@@ -54,27 +78,40 @@ async function endSession() {
 }
 
 async function eraseData() {
-  log('erasing all roll data');
+  log("erasing all roll data");
   endSession();
   let update = { _id: game.user.id };
   update[`flags.${MODULE_ID}.-=rolls`] = true;
   update[`flags.${MODULE_ID}.-=rollers`] = true;
   update[`flags.${MODULE_ID}.-=sessions`] = true;
   await User.updateDocuments([update]);
-  ui.notifications.warn(game.i18n.localize(`${MODULE_ID}.notifications.erased`));
+  ui.notifications.warn(
+    game.i18n.localize(`${MODULE_ID}.notifications.erased`),
+  );
 }
 
 function getActiveGM() {
-  let activeGMs = game.users.filter(u => u.active && u.isGM);
+  let activeGMs = game.users.filter((u) => u.active && u.isGM);
   activeGMs.sort((a, b) => b.id - a.id);
   return activeGMs[0] || null;
 }
 
-async function recordRoll({ messageId, type, roller, vs = null, d20, needs = NaN, dos = TABLE[0], isReroll = false }) {
+async function recordRoll({
+  messageId,
+  type,
+  roller,
+  vs = null,
+  d20,
+  needs = NaN,
+  dos = TABLE[0],
+  isReroll = false,
+}) {
   if (!g_sessionUuid) {
     if (!g_sessionWarned) {
       g_sessionWarned = true;
-      ui.notifications.warn(game.i18n.localize(`${MODULE_ID}.notifications.noSession`));
+      ui.notifications.warn(
+        game.i18n.localize(`${MODULE_ID}.notifications.noSession`),
+      );
     }
     return;
   }
@@ -82,7 +119,7 @@ async function recordRoll({ messageId, type, roller, vs = null, d20, needs = NaN
   const gmId = getActiveGM().id;
   const rollerId = roller ?? gmId;
   const vsId = vs ?? gmId;
-  const adjustedType = (isReroll) ? type + '-reroll' : type;
+  const adjustedType = isReroll ? type + "-reroll" : type;
   const update = { _id: game.user.id };
   let entry = {
     session: g_sessionUuid,
@@ -99,59 +136,62 @@ async function recordRoll({ messageId, type, roller, vs = null, d20, needs = NaN
 }
 
 async function initializeLogging() {
-  const unlocked = game.settings.get(MODULE_ID, 'unlocked');
+  const unlocked = game.settings.get(MODULE_ID, "unlocked");
   if (!unlocked) return;
 
   g_sessionUuid = game.user.flags[MODULE_ID]?.session;
 
-  Hooks.on('createChatMessage', async (message, options, id) => {
-    if (!game.settings.get(MODULE_ID, 'logging')) return;
+  Hooks.on("createChatMessage", async (message, options, id) => {
+    if (!game.settings.get(MODULE_ID, "logging")) return;
 
     const roll = message.rolls[0];
     // log('createChatMessage', { message, roll });
-    if (!roll)
-      return;
+    if (!roll) return;
 
     // Only look at d20s and ignore damage rolls
     if (roll.terms?.[0]?.faces !== 20) return;
-    if (message.flags?.pf2e?.context?.type === 'damage-roll') return;
+    if (message.flags?.pf2e?.context?.type === "damage-roll") return;
 
     // Devise a stratagem has a terrible signature so we have to look for it first
-    if (message.flavor == 'Devise a Stratagem')
+    if (message.flavor == "Devise a Stratagem")
       return await onDeviseAStratagem(message, roll);
 
     // The vanilla chat card handles lots of stuff
     const rollOpt = roll?.options;
     const type = rollOpt?.type;
     if (type) return await onVanillaAction(message, roll, rollOpt, type);
-  
+
     // Recall Knowledge is a good bet
-    if (message.flavor.includes('class="pf2e-hud-rk') || message.content.includes('<strong>Recall Knowledge</strong>'))
+    if (
+      message.flavor.includes('class="pf2e-hud-rk') ||
+      message.content.includes("<strong>Recall Knowledge</strong>")
+    )
       return await onRecallKnowledge(message, roll);
+    // log('createChatMessage', { message, roll });
   });
 
-  Hooks.on('updateChatMessage', async (message, delta, options, id) => {
-    if (!game.settings.get(MODULE_ID, 'logging')) return;
+  Hooks.on("updateChatMessage", async (message, delta, options, id) => {
+    if (!game.settings.get(MODULE_ID, "logging")) return;
 
-    const toolbelt = delta?.flags?.['pf2e-toolbelt'];
-    // log('updateChatMessage', { message, delta, toolbelt });
+    const toolbelt = delta?.flags?.["pf2e-toolbelt"];
+    if (toolbelt) return await onToolBelt(message, toolbelt);
 
-    if (toolbelt)
-      return await onToolBelt(message, toolbelt);
-
-    const flatcheck = delta?.flags?.['pf2e-flatcheck-helper']?.flatchecks?.targets;
-    if (flatcheck)
-      return await onFlatCheckHelper(message, delta);
+    const flatcheck =
+      delta?.flags?.["pf2e-flatcheck-helper"]?.flatchecks?.targets;
+    if (flatcheck) return await onFlatCheckHelper(message, delta);
+    // log('updateChatMessage', { message, delta });
   });
 }
 
 async function onDeviseAStratagem(message, roll) {
-  const roller = game.users.find(u => u.character?.id === message.speaker.actor)?.id;
+  const roller = game.users.find(
+    (u) => u.character?.id === message.speaker.actor,
+  )?.id;
   const d20 = roll.dice[0].total;
   const dos = TABLE[1 + (roll?.options?.degreeOfSuccess ?? -1)];
   await recordRoll({
     messageId: message.id,
-    type: 'devise-a-stratagem',
+    type: "devise-a-stratagem",
     roller,
     d20,
     dos,
@@ -159,13 +199,19 @@ async function onDeviseAStratagem(message, roll) {
 }
 
 async function onVanillaAction(message, roll, rollOpt, type) {
-  const roller = game.users.find(u => u.character?.id === message.flags.pf2e.context.actor)?.id;
+  const roller = game.users.find(
+    (u) => u.character?.id === message.flags.pf2e.context.actor,
+  )?.id;
   const d20 = roll.dice[0].total;
   const dos = TABLE[1 + (rollOpt?.degreeOfSuccess ?? -1)];
   const modifier = rollOpt.totalModifier;
   const context = message.flags.pf2e.context;
-  const targetToken = context?.target?.token ? await fromUuid(context?.target?.token) : null;
-  const vs = targetToken ? game.users.find((u) => u.character?.id === targetToken.actor?.id)?.id : null;
+  const targetToken = context?.target?.token
+    ? await fromUuid(context?.target?.token)
+    : null;
+  const vs = targetToken
+    ? game.users.find((u) => u.character?.id === targetToken.actor?.id)?.id
+    : null;
   const dc = context.dc?.value;
   const isReroll = context.isReroll;
   const needs = dc - modifier;
@@ -177,16 +223,18 @@ async function onVanillaAction(message, roll, rollOpt, type) {
     d20,
     dos,
     needs,
-    isReroll
+    isReroll,
   });
 }
 
 async function onRecallKnowledge(message, roll) {
-  const roller = game.users.find(u => u.character?.id === message.speaker.actor)?.id;
+  const roller = game.users.find(
+    (u) => u.character?.id === message.speaker.actor,
+  )?.id;
   const d20 = roll.dice[0].total;
   await recordRoll({
     messageId: message.id,
-    type: 'skill-check',
+    type: "skill-check",
     roller,
     d20,
   });
@@ -197,40 +245,42 @@ async function onToolBelt(message, toolbelt) {
   const saves = toolbelt?.targetHelper?.saves;
   const actorUuid = message?.flags?.pf2e?.origin?.actor;
   const actor = actorUuid ? await fromUuid(actorUuid) : null;
-  const vs = game.users.find(u => u.character?.id === actor.id)?.id;
+  const vs = game.users.find((u) => u.character?.id === actor.id)?.id;
   for (const tokenId in saves) {
     const token = canvas.scene.tokens.get(tokenId);
-    const roller = token ? game.users.find((u) => u.character?.id === token?.actor?.id)?.id : null;
+    const roller = token
+      ? game.users.find((u) => u.character?.id === token?.actor?.id)?.id
+      : null;
     const save = saves[tokenId];
     const d20 = save.die;
     const dos = save.success;
     const modifier = save.value - save.die;
-    const dc = message.flags['pf2e-toolbelt']?.targetHelper?.save?.dc;
+    const dc = message.flags["pf2e-toolbelt"]?.targetHelper?.save?.dc;
     const needs = dc - modifier;
-    const isReroll = save?.rerolled === 'new';
+    const isReroll = save?.rerolled === "new";
     await recordRoll({
       messageId: message.id,
-      type: 'saving-throw',
+      type: "saving-throw",
       roller,
       vs,
       d20,
       dos,
       needs,
-      isReroll
+      isReroll,
     });
   }
 }
 
 async function onFlatCheckHelper(message, delta) {
-  const flatcheck = message.flags['pf2e-flatcheck-helper'].flatchecks.targets;
+  const flatcheck = message.flags["pf2e-flatcheck-helper"].flatchecks.targets;
   const actorUuid = message?.flags?.pf2e?.origin?.actor;
   const actor = actorUuid ? await fromUuid(actorUuid) : null;
   await recordRoll({
     messageId: message.id,
-    type: 'flat-check',
+    type: "flat-check",
     d20: flatcheck.roll,
     needs: flatcheck.dc,
-    roller: game.users.find(u => u.character?.id === actor?.id)?.id,
-    dos: (flatcheck.roll >= flatcheck.dc) ? 'success' : 'failure',
+    roller: game.users.find((u) => u.character?.id === actor?.id)?.id,
+    dos: flatcheck.roll >= flatcheck.dc ? "success" : "failure",
   });
 }

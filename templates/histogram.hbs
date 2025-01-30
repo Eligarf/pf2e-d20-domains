@@ -1,0 +1,59 @@
+<div>
+  <table>
+    <tr>
+      <td>Roll</td>
+      <td>Critical Failures</td>
+      <td>Failures</td>
+      <td>Successes</td>
+      <td>Critical Successes</td>
+      <td>Unknown</td>
+    </tr>
+    {{#each filteredResults}}
+      <tr>
+        <td>{{@key}}</td>
+        <td>
+          {{criticalFailures}}
+        </td>
+        <td>
+          {{failures}}
+        </td>
+        <td>
+          {{successes}}
+        </td>
+        <td>
+          {{criticalSuccesses}}
+        </td>
+        <td>
+          {{unknowns}}
+        </td>
+      </tr>
+    {{/each}}
+  </table>
+  <br />
+  <div>
+    <h3>Session</h3>
+    <select name="session">
+      {{#select selected}}
+        {{#each sessions}}
+          <option value="{{@key}}">{{started}}</option>
+        {{/each}}
+      {{/select}}
+    </select>
+    <br />
+    <div>
+      <h3>Users</h3>
+      {{#each users}}
+        <input type="checkbox" name="user-{{@key}}" {{checked enabled}} />
+        <label>{{name}}</label>
+      {{/each}}
+    </div>
+    <br />
+    <div>
+      <h3>Types</h3>
+      {{#each types}}
+        <input type="checkbox" name="type-{{@key}}" {{checked enabled}} />
+        <label>{{name}}</label>
+      {{/each}}
+    </div>
+  </div>
+</div>

@@ -29,8 +29,7 @@
   },
   "esmodules": [
     "esmodules/main.js",
-    "esmodules/logger.js",
-    "esmodules/analyzer.js"
+    "esmodules/logger.js"
   ],
   "languages": [
     {
