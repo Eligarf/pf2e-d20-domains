@@ -1,3 +1,11 @@
+# v0.7.0
+
+- Display dice results using dynamic bar chart
+
+# v0.6.0
+
+- Histogram display of test data
+
 # v0.5.0
 
 - Capture Recall Knowledge rolls from pf2e-hud and pf2e-workbench BAM
@@ -20,4 +28,3 @@
 # v0.1.0
 
 - Initial implementation
-
