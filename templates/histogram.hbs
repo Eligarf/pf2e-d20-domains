@@ -1,33 +1,65 @@
 <div>
-  <table>
+  <table
+    border="0"
+    cellpadding="0"
+    cellspacing="0"
+    role="presentation"
+    style="border: none; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
+  >
     <tr>
-      <td>Roll</td>
-      <td>Critical Failures</td>
-      <td>Failures</td>
-      <td>Successes</td>
-      <td>Critical Successes</td>
-      <td>Unknown</td>
+      {{#each filteredResults}}
+        <td style="padding:2px; vertical-align:bottom;">
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            role="presentation"
+            style="border: none; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:40px;"
+          >
+            {{#if criticalSuccesses}}
+              <tr>
+                <td
+                  style="height:10px; background-color:green;"
+                >{{criticalSuccesses}}</td>
+              </tr>
+            {{/if}}
+            {{#if successes}}
+              <tr>
+                <td
+                  style="height:10px; background-color:blue;"
+                >{{successes}}</td>
+              </tr>
+            {{/if}}
+            {{#if failures}}
+              <tr>
+                <td
+                  style="height:10px; background-color:orange;"
+                >{{failures}}</td>
+              </tr>
+            {{/if}}
+            {{#if criticalFailures}}
+              <tr>
+                <td
+                  style="height:10px; background-color:red;"
+                >{{criticalFailures}}</td>
+              </tr>
+            {{/if}}
+            {{#if unknowns}}
+              <tr>
+                <td
+                  style="height:10px; background-color:gray;"
+                >{{unknowns}}</td>
+              </tr>
+            {{/if}}
+          </table>
+        </td>
+      {{/each}}
     </tr>
-    {{#each filteredResults}}
-      <tr>
-        <td>{{@key}}</td>
-        <td>
-          {{criticalFailures}}
-        </td>
-        <td>
-          {{failures}}
-        </td>
-        <td>
-          {{successes}}
-        </td>
-        <td>
-          {{criticalSuccesses}}
-        </td>
-        <td>
-          {{unknowns}}
-        </td>
-      </tr>
-    {{/each}}
+    <tr>
+      {{#each filteredResults}}
+        <td style="text-align: center;">{{@key}}</td>
+      {{/each}}
+    </tr>
   </table>
   <br />
   <div>
@@ -43,7 +75,12 @@
     <div>
       <h3>Users</h3>
       {{#each users}}
-        <input type="checkbox" name="user-{{@key}}" {{checked enabled}} />
+        <input
+          data-action="onUser"
+          type="checkbox"
+          name="user-{{@key}}"
+          {{checked enabled}}
+        />
         <label>{{name}}</label>
       {{/each}}
     </div>
@@ -51,7 +88,12 @@
     <div>
       <h3>Types</h3>
       {{#each types}}
-        <input type="checkbox" name="type-{{@key}}" {{checked enabled}} />
+        <input
+          data-action="onType"
+          type="checkbox"
+          name="type-{{@key}}"
+          {{checked enabled}}
+        />
         <label>{{name}}</label>
       {{/each}}
     </div>

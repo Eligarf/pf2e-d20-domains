@@ -13,7 +13,7 @@ Do your d20's love you, or are they spiteful little orbs of hate? This is a cent
 
 ## Why would you write a piece of statistical nonsense like this?
 
-This is self-therapy for an extended run of bad luck with my characters. Either I get "proof" of the "unfairness" of disadvantage that my characters labor under, or I make the problem go away by shining the *spotlight of truth* upon the baleful d20s and they start behaving with a more uniform distribution. There are other dice loggers out there that I could use, but they don't capture the greater context of the rolls other than if it is an attack roll.
+This is self-therapy for an extended run of bad luck with my characters. Either I get "proof" of the "unfairness" of disadvantage that my characters labor under, or I make the problem go away by shining the _spotlight of truth_ upon the baleful d20s and they start behaving with a more uniform distribution. There are other dice loggers out there that I could use, but they don't capture the greater context of the rolls other than if it is an attack roll.
 
 ## But as a GM, I have to "build mystery" by hiding everything, obfuscating feedback and consequently reducing player agency
 
@@ -21,11 +21,12 @@ Well, don't use this then. While not visible to the player on the chat card, the
 
 ## How it works
 
-Once a client unlocks the module in the *PF2e d20 Love Meter* game settings, it enables a new control where logging sessions can be started, paused, and stopped. When logging is started, the module will scrape d20 rolls out of certain chat cards and log the context. This applies to all chat cards equally, GM and other players included (remember, though not visible to the player, the data is still there). So there isn't any need to have multiple clients unlock the module - they will each end up with the same data.
+Once a client unlocks the module in the _PF2e d20 Love Meter_ game settings, it enables a new control where logging sessions can be started, paused, and stopped. When logging is started, the module will scrape d20 rolls out of certain chat cards and log the context. This applies to all chat cards equally, GM and other players included (remember, though not visible to the player, the data is still there). So there isn't any need to have multiple clients unlock the module - they will each end up with the same data.
 
 The Analyze button in the control brings up a sheet where roll analyses are displayed based on various filters selected by the viewer.
 
 ## Supported Modules
 
-* PF2e Toolbelt
-* PF2e Utility buttons
+- PF2e Toolbelt
+- PF2e Utility buttons
+

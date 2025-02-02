@@ -27,10 +27,7 @@
       }
     ]
   },
-  "esmodules": [
-    "esmodules/main.js",
-    "esmodules/logger.js"
-  ],
+  "esmodules": ["esmodules/main.js", "esmodules/logger.js"],
   "languages": [
     {
       "lang": "en",

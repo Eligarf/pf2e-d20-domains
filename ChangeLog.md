@@ -1,17 +1,23 @@
 # v0.5.0
-* Capture Recall Knowledge rolls from pf2e-hud and pf2e-workbench BAM 
+
+- Capture Recall Knowledge rolls from pf2e-hud and pf2e-workbench BAM
 
 # v0.4.0
-* Rework logs to be friendly to filtering
-* Add timeline button
-* Capture devise a stratagem and flat rolls
+
+- Rework logs to be friendly to filtering
+- Add timeline button
+- Capture devise a stratagem and flat rolls
 
 # v0.3.0
-* Added data eraser
-* Record start/stop time for sessions
+
+- Added data eraser
+- Record start/stop time for sessions
 
 # v0.2.0
-* Hooked up UI elements to control logging and sessions
+
+- Hooked up UI elements to control logging and sessions
 
 # v0.1.0
-* Initial implementation
+
+- Initial implementation
+
