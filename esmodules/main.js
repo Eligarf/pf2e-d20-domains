@@ -8,6 +8,7 @@ import {
 } from "./logger.js";
 import { doHistogram } from "./histogram.js";
 import { doTimeline } from "./timeline.js";
+import { TransferApplication } from "./transfer.js";
 
 const CONSOLE_COLORS = ["background: #222; color: #ffff80", "color: #fff"];
 const MODULE_ID = "pf2e-d20-love-meter";
@@ -53,6 +54,16 @@ Hooks.once("setup", () => {
     requiresReload: true,
     default: false,
   });
+
+  if (game.user.isGM) {
+    game.settings.registerMenu(MODULE_ID, "transferMenu", {
+      name: game.i18n.localize(`${MODULE_ID}.dialog.transfer.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.dialog.transfer.hint`),
+      icon: "fas fa-exchange",
+      type: TransferApplication,
+      restricted: true,
+    });
+  }
 
   game.settings.register(MODULE_ID, "logging", {
     name: game.i18n.localize(`${MODULE_ID}.logging.name`),

@@ -1,0 +1,29 @@
+<div action="#">
+  <div class="transfer">
+    <div>
+      <h3>{{localize "pf2e-d20-love-meter.dialog.transfer.from"}}</h3>
+      <select name="from">
+        {{#select from}}
+          {{#each from}}
+            <option value="{{id}}">{{name}}</option>
+          {{/each}}
+        {{/select}}
+      </select>
+    </div>
+    <div>
+      <h3>{{localize "pf2e-d20-love-meter.dialog.transfer.to"}}</h3>
+      <select name="to">
+        {{#select to}}
+          {{#each to}}
+            <option value="{{id}}">{{name}}</option>
+          {{/each}}
+        {{/select}}
+      </select>
+    </div>
+  </div>
+
+  <footer class="sheet-footer flexrow">
+    <button type="submit" name="submit"><i class="fas fa-save"></i>
+      {{localize "SETTINGS.Save"}}</button>
+  </footer>
+</div>

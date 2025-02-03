@@ -5,7 +5,8 @@
       "terminateSession": "Session {SessionUuid} terminated",
       "noSession": "No active Session to record rolls",
       "update": "Updated PF2e d20 Love Meter data from {oldVersion} to {moduleVersion}",
-      "erased": "All roll data erased"
+      "erased": "All roll data erased",
+      "stopSession": "Session must be stopped before log can be transferred"
     },
     "control": {
       "title": "d20 Love Meter",
@@ -19,6 +20,12 @@
     "dialog": {
       "erase": {
         "content": "Confirm erasing all rolls?"
+      },
+      "transfer": {
+        "name": "Transfer logs",
+        "hint": "Transfer logs from one user to another",
+        "from": "Transfer logs from user",
+        "to": "to user"
       }
     },
     "histogram": {
