@@ -1,4 +1,11 @@
-# pending
+# v0.8.1
+
+- Don't require GM to view stats
+- Turn off spurious logs
+- Make sure found logger has rolls
+- More complete erase
+
+# v0.8.0
 
 - Add transfer dialog to move logs to a different user
 - Reduce the use of statics in Histogram state

@@ -1,4 +1,4 @@
-export { MODULE_ID, log, interpolateString, getActiveGM };
+export { MODULE_ID, log, interpolateString, getGM };
 import {
   initializeLogging,
   startLogging,
@@ -31,10 +31,12 @@ function interpolateString(str, interpolations) {
   );
 }
 
-function getActiveGM() {
-  let activeGMs = game.users.filter((u) => u.active && u.isGM);
-  activeGMs.sort((a, b) => b.id - a.id);
-  return activeGMs[0] || null;
+function getGM() {
+  let gm = game.users.activeGM;
+  if (gm) return gm;
+  let gms = game.users.filter((u) => u.isGM);
+  gms.sort((a, b) => b.id - a.id);
+  return gms[0];
 }
 
 function migrate(moduleVersion, oldVersion) {
@@ -153,7 +155,6 @@ function initializeLayer() {
 Hooks.on("getSceneControlButtons", (controls) => {
   const logger = game.users.find((u) => u.flags[MODULE_ID]);
   const watcher = !game.settings.get(MODULE_ID, "unlocked");
-  log("logger", logger);
   if (watcher && !logger) return;
 
   let tools = [];
@@ -221,7 +222,6 @@ Hooks.on("getSceneControlButtons", (controls) => {
     });
   }
 
-  log("tools", tools);
   controls.push({
     name: MODULE_ID,
     title: `${MODULE_ID}.control.title`,

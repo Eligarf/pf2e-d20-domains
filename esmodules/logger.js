@@ -1,4 +1,4 @@
-import { MODULE_ID, log, interpolateString, getActiveGM } from "./main.js";
+import { MODULE_ID, log, interpolateString, getGM } from "./main.js";
 
 /*global foundry, game, Hooks*/
 /*eslint no-undef: "error"*/
@@ -81,9 +81,7 @@ async function eraseData() {
   log("erasing all roll data");
   endSession();
   let update = { _id: game.user.id };
-  update[`flags.${MODULE_ID}.-=rolls`] = true;
-  update[`flags.${MODULE_ID}.-=rollers`] = true;
-  update[`flags.${MODULE_ID}.-=sessions`] = true;
+  update[`flags.-=${MODULE_ID}`] = true;
   await User.updateDocuments([update]);
   ui.notifications.warn(
     game.i18n.localize(`${MODULE_ID}.notifications.erased`),
@@ -110,7 +108,7 @@ async function recordRoll({
     return;
   }
 
-  const gmId = getActiveGM().id;
+  const gmId = getGM().id;
   const rollerId = roller ?? gmId;
   const vsId = vs ?? gmId;
   const adjustedType = isReroll ? type + "-reroll" : type;

@@ -1,4 +1,4 @@
-import { log, interpolateString, getActiveGM } from "./main.js";
+import { log, interpolateString, getGM } from "./main.js";
 // import { TEST_LOG, TEST_USER_ID } from "./test-data.js";
 export { doHistogram };
 
@@ -95,8 +95,8 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext() {
     let context = await super._prepareContext();
 
-    const logger = game.users.find((u) => u.flags[MODULE_ID]);
-    const srcLog = logger.flags[MODULE_ID];
+    const logger = game.users.find((u) => u.flags[MODULE_ID]?.rolls);
+    const srcLog = logger?.flags?.[MODULE_ID];
     // const srcLog = TEST_LOG;
 
     const myUserId = game.user.id;
@@ -106,14 +106,14 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     let results = {};
     for (let r = 1; r <= 20; ++r) {
       results[r] = {
-        rolls: srcLog.rolls[r]
+        rolls: srcLog?.rolls?.[r]
           ? foundry.utils.deepClone(Object.values(srcLog.rolls[r]))
           : [],
       };
     }
 
     const isGM = game.user.isGM;
-    const activeGM = getActiveGM();
+    const gm = getGM();
     function accrueUserName(id) {
       if (id in Histogram.STATE.users) return;
       Histogram.STATE.users[id] = {
@@ -130,9 +130,9 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     for (let face of Object.values(results)) {
       for (let i of face.rolls) {
-        if (!i.rollerId) i.rollerId = activeGM.id;
+        if (!i.rollerId) i.rollerId = gm.id;
         accrueUserName(i.rollerId);
-        if (!i.vsId) i.vsId = activeGM.id;
+        if (!i.vsId) i.vsId = gm.id;
         accrueUserName(i.vsId);
         accrueType(i.type);
       }
