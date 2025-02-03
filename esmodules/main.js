@@ -194,6 +194,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
     name: `histogram`,
     title: `${MODULE_ID}.control.histogram`,
     visible: true,
+    toggle: true,
     onClick: async () => {
       await doHistogram();
     },
