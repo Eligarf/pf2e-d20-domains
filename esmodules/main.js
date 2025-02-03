@@ -144,7 +144,6 @@ Hooks.on("renderSettingsConfig", (app, html, data) => {
 });
 
 function initializeLayer() {
-  if (!game.settings.get(MODULE_ID, "unlocked")) return;
   CONFIG.Canvas.layers.d20LoveMeter = {
     layerClass: InteractionLayer,
     group: "interface",
@@ -152,35 +151,42 @@ function initializeLayer() {
 }
 
 Hooks.on("getSceneControlButtons", (controls) => {
-  if (!game.settings.get(MODULE_ID, "unlocked")) return;
-  const startLoggingTool = {
-    icon: "fas fa-play",
-    name: "start-logging",
-    title: `${MODULE_ID}.control.startLogging`,
-    visible: true,
-    onClick: async () => {
-      await startLogging();
-    },
-  };
-  const stopLoggingTool = {
-    icon: "fas fa-pause",
-    name: "stop-logging",
-    title: `${MODULE_ID}.control.stopLogging`,
-    visible: true,
-    onClick: async () => {
-      await stopLogging();
-    },
-  };
-  const endSessionTool = {
-    icon: "fas fa-flag-checkered",
-    name: "end-session",
-    title: `${MODULE_ID}.control.endSession`,
-    visible: true,
-    onClick: async () => {
-      await endSession();
-    },
-  };
-  const histogramTool = {
+  const logger = game.users.find((u) => u.flags[MODULE_ID]);
+  const watcher = !game.settings.get(MODULE_ID, "unlocked");
+  log("logger", logger);
+  if (watcher && !logger) return;
+
+  let tools = [];
+  if (!watcher) {
+    tools.push({
+      icon: "fas fa-play",
+      name: "start-logging",
+      title: `${MODULE_ID}.control.startLogging`,
+      visible: true,
+      onClick: async () => {
+        await startLogging();
+      },
+    });
+    tools.push({
+      icon: "fas fa-pause",
+      name: "stop-logging",
+      title: `${MODULE_ID}.control.stopLogging`,
+      visible: true,
+      onClick: async () => {
+        await stopLogging();
+      },
+    });
+    tools.push({
+      icon: "fas fa-flag-checkered",
+      name: "end-session",
+      title: `${MODULE_ID}.control.endSession`,
+      visible: true,
+      onClick: async () => {
+        await endSession();
+      },
+    });
+  }
+  tools.push({
     icon: "fas fa-chart-simple",
     name: `histogram`,
     title: `${MODULE_ID}.control.histogram`,
@@ -188,8 +194,8 @@ Hooks.on("getSceneControlButtons", (controls) => {
     onClick: async () => {
       await doHistogram();
     },
-  };
-  const timelineTool = {
+  });
+  /* tools.push({
     icon: "fas fa-timeline",
     name: `timeline`,
     title: `${MODULE_ID}.control.timeline`,
@@ -197,38 +203,35 @@ Hooks.on("getSceneControlButtons", (controls) => {
     onClick: async () => {
       await doTimeline();
     },
-  };
-  const eraseTool = {
-    icon: "fas fa-trash",
-    name: "erase",
-    title: `${MODULE_ID}.control.erase`,
-    visible: true,
-    onClick: async () => {
-      const proceed = await foundry.applications.api.DialogV2.confirm({
-        content: game.i18n.localize(`${MODULE_ID}.dialog.erase.content`),
-        rejectClose: false,
-        modal: true,
-      });
-      if (proceed) await eraseData();
-    },
-  };
+  }); */
+  if (!watcher) {
+    tools.push({
+      icon: "fas fa-trash",
+      name: "erase",
+      title: `${MODULE_ID}.control.erase`,
+      visible: true,
+      onClick: async () => {
+        const proceed = await foundry.applications.api.DialogV2.confirm({
+          content: game.i18n.localize(`${MODULE_ID}.dialog.erase.content`),
+          rejectClose: false,
+          modal: true,
+        });
+        if (proceed) await eraseData();
+      },
+    });
+  }
 
+  log("tools", tools);
   controls.push({
     name: MODULE_ID,
     title: `${MODULE_ID}.control.title`,
-    icon: game.settings.get(MODULE_ID, "logging")
-      ? "fa fa-pen-to-square"
-      : "fas fa-dice-d20",
+    icon:
+      !watcher && game.settings.get(MODULE_ID, "logging")
+        ? "fa fa-pen-to-square"
+        : "fas fa-dice-d20",
     layer: "d20LoveMeter",
     visible: true,
     activeTool: "",
-    tools: [
-      startLoggingTool,
-      stopLoggingTool,
-      endSessionTool,
-      histogramTool,
-      timelineTool,
-      eraseTool,
-    ],
+    tools: tools,
   });
 });

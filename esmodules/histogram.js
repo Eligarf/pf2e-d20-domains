@@ -6,12 +6,8 @@ const MODULE_ID = "pf2e-d20-love-meter";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-let gHistogram;
-
 async function doHistogram() {
-  if (gHistogram) await gHistogram?.close();
-  else gHistogram = new Histogram();
-  gHistogram.render(true);
+  new Histogram().render(true);
 }
 
 class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -99,7 +95,8 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext() {
     let context = await super._prepareContext();
 
-    const srcLog = game.user.flags[MODULE_ID];
+    const logger = game.users.find((u) => u.flags[MODULE_ID]);
+    const srcLog = logger.flags[MODULE_ID];
     // const srcLog = TEST_LOG;
 
     const myUserId = game.user.id;

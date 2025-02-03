@@ -2,6 +2,7 @@
 
 - Add transfer dialog to move logs to a different user
 - Reduce the use of statics in Histogram state
+- Non-logging users can view stats
 
 # v0.7.0
 
