@@ -159,33 +159,35 @@ Hooks.on("getSceneControlButtons", (controls) => {
 
   let tools = [];
   if (!watcher) {
-    tools.push({
-      icon: "fas fa-play",
-      name: "start-logging",
-      title: `${MODULE_ID}.control.startLogging`,
-      visible: true,
-      onClick: async () => {
-        await startLogging();
+    tools.push(
+      {
+        icon: "fas fa-play",
+        name: "start-logging",
+        title: `${MODULE_ID}.control.startLogging`,
+        visible: true,
+        onClick: async () => {
+          await startLogging();
+        },
       },
-    });
-    tools.push({
-      icon: "fas fa-pause",
-      name: "stop-logging",
-      title: `${MODULE_ID}.control.stopLogging`,
-      visible: true,
-      onClick: async () => {
-        await stopLogging();
+      {
+        icon: "fas fa-pause",
+        name: "stop-logging",
+        title: `${MODULE_ID}.control.stopLogging`,
+        visible: true,
+        onClick: async () => {
+          await stopLogging();
+        },
       },
-    });
-    tools.push({
-      icon: "fas fa-flag-checkered",
-      name: "end-session",
-      title: `${MODULE_ID}.control.endSession`,
-      visible: true,
-      onClick: async () => {
-        await endSession();
+      {
+        icon: "fas fa-flag-checkered",
+        name: "end-session",
+        title: `${MODULE_ID}.control.endSession`,
+        visible: true,
+        onClick: async () => {
+          await endSession();
+        },
       },
-    });
+    );
   }
   tools.push({
     icon: "fas fa-chart-simple",
@@ -205,7 +207,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
       await doTimeline();
     },
   }); */
-  if (!watcher) {
+  if (game.user.flags[MODULE_ID]) {
     tools.push({
       icon: "fas fa-trash",
       name: "erase",
@@ -232,6 +234,6 @@ Hooks.on("getSceneControlButtons", (controls) => {
     layer: "d20LoveMeter",
     visible: true,
     activeTool: "",
-    tools: tools,
+    tools,
   });
 });

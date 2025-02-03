@@ -6,8 +6,12 @@ const MODULE_ID = "pf2e-d20-love-meter";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+var gHistogram;
+
 async function doHistogram() {
-  new Histogram().render(true);
+  if (gHistogram) gHistogram.close();
+  else gHistogram = new Histogram();
+  gHistogram.render(true);
 }
 
 class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {

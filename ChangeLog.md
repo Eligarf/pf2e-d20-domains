@@ -1,3 +1,8 @@
+# v0.8.2
+
+- Don't game erase on unlock
+- needed the gHistogram global after all
+
 # v0.8.1
 
 - Don't require GM to view stats
