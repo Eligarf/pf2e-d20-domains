@@ -1,4 +1,4 @@
-import { log, interpolateString } from "./main.js";
+import { log, interpolateString, getActiveGM } from "./main.js";
 // import { TEST_LOG, TEST_USER_ID } from "./test-data.js";
 export { doHistogram };
 
@@ -17,82 +17,12 @@ async function doHistogram() {
 class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(object, options = {}) {
     super(object, options);
-
-    const srcLog = game.user.flags[MODULE_ID];
-    // const srcLog = TEST_LOG;
-
-    const myUserId = game.user.id;
-    // const myUserId = TEST_USER_ID;
-
-    // remove instance IDs
-    let results = {};
-    for (let r = 1; r <= 20; ++r) {
-      results[r] = {
-        rolls: srcLog.rolls[r]
-          ? foundry.utils.deepClone(Object.values(srcLog.rolls[r]))
-          : [],
-      };
-    }
-
-    const isGM = false; //game.user.isGM;
-    let users = { gmId: { name: "GM", enabled: isGM } };
-    function accrueUserName(id) {
-      if (id in users) return;
-      users[id] = {
-        name: game.users.get(id)?.name ?? id,
-        enabled: id === myUserId || isGM,
-      };
-    }
-    let types = {};
-    function accrueType(type) {
-      if (type in types) return;
-      types[type] = {
-        name: type,
-        enabled: true,
-      };
-    }
-    for (let face of Object.values(results)) {
-      for (let i of face.rolls) {
-        if (!i.rollerId) i.rollerId = "gmId";
-        accrueUserName(i.rollerId);
-        if (!i.vsId) i.vsId = "gmId";
-        accrueUserName(i.vsId);
-        accrueType(i.type);
-      }
-    }
-
-    // Sort the accrued values for presentation
-    const sessions = Object.entries(srcLog.sessions)
-      .sort((a, b) => {
-        if (a[1].started < b[1].started) return -1;
-        if (a[1].started > b[1].started) return 1;
-        return 0;
-      })
-      .map(([k, v]) => {
-        return [k, { started: new Date(v.started), ended: new Date(v.ended) }];
-      });
-    Histogram.STATE.sessions = Object.fromEntries([
-      ["_all", { started: "All sessions" }],
-      ...sessions,
-    ]);
-    Histogram.STATE.users = Object.fromEntries(
-      Object.entries(users).sort((a, b) => {
-        if (a[1].name < b[1].name) return -1;
-        if (a[1].name > b[1].name) return 1;
-        return 0;
-      }),
-    );
-    Histogram.STATE.types = Object.fromEntries(
-      Object.entries(types).sort((a, b) => {
-        if (a[1].name < b[1].name) return -1;
-        if (a[1].name > b[1].name) return 1;
-        return 0;
-      }),
-    );
-    Histogram.STATE.results = results;
   }
 
-  static STATE = {};
+  static STATE = {
+    users: {},
+    types: {},
+  };
 
   static DEFAULT_OPTIONS = {
     id: `${MODULE_ID}-histogram`,
@@ -137,10 +67,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     await this.render();
   }
 
-  filter(context) {
+  filter(context, rawResults) {
     let results = {};
-    for (let f of Object.keys(context.results)) {
-      const rolls = context.results[f]?.rolls?.filter((r) => {
+    for (let f of Object.keys(rawResults)) {
+      const rolls = rawResults[f]?.rolls?.filter((r) => {
         if (!context.users[r.rollerId].enabled) return false;
         if (!context.types[r.type].enabled) return false;
         return true;
@@ -155,11 +85,12 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       let result = {
         rolls: rolls,
       };
-      if (critFails.length > 0) result.criticalFailures = critFails.length;
-      if (fails.length > 0) result.failures = fails.length;
-      if (successes.length > 0) result.successes = successes.length;
-      if (crits.length > 0) result.criticalSuccesses = crits.length;
-      if (unknowns.length > 0) result.unknowns = unknowns.length;
+      if (critFails.length > 0)
+        result.criticalFailures = { count: critFails.length };
+      if (fails.length > 0) result.failures = { count: fails.length };
+      if (successes.length > 0) result.successes = { count: successes.length };
+      if (crits.length > 0) result.criticalSuccesses = { count: crits.length };
+      if (unknowns.length > 0) result.unknowns = { count: unknowns.length };
       results[f] = result;
     }
     return results;
@@ -168,8 +99,78 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext() {
     let context = await super._prepareContext();
 
+    const srcLog = game.user.flags[MODULE_ID];
+    // const srcLog = TEST_LOG;
+
+    const myUserId = game.user.id;
+    // const myUserId = TEST_USER_ID;
+
+    // remove instance IDs
+    let results = {};
+    for (let r = 1; r <= 20; ++r) {
+      results[r] = {
+        rolls: srcLog.rolls[r]
+          ? foundry.utils.deepClone(Object.values(srcLog.rolls[r]))
+          : [],
+      };
+    }
+
+    const isGM = game.user.isGM;
+    const activeGM = getActiveGM();
+    function accrueUserName(id) {
+      if (id in Histogram.STATE.users) return;
+      Histogram.STATE.users[id] = {
+        name: game.users.get(id)?.name ?? id,
+        enabled: id === myUserId || isGM,
+      };
+    }
+    function accrueType(type) {
+      if (type in Histogram.STATE.types) return;
+      Histogram.STATE.types[type] = {
+        name: type,
+        enabled: true,
+      };
+    }
+    for (let face of Object.values(results)) {
+      for (let i of face.rolls) {
+        if (!i.rollerId) i.rollerId = activeGM.id;
+        accrueUserName(i.rollerId);
+        if (!i.vsId) i.vsId = activeGM.id;
+        accrueUserName(i.vsId);
+        accrueType(i.type);
+      }
+    }
+
+    // Sort the accrued values for presentation
+    const sessions = Object.entries(srcLog.sessions)
+      .sort((a, b) => {
+        if (a[1].started < b[1].started) return -1;
+        if (a[1].started > b[1].started) return 1;
+        return 0;
+      })
+      .map(([k, v]) => {
+        return [k, { started: new Date(v.started), ended: new Date(v.ended) }];
+      });
+    Histogram.STATE.sessions = Object.fromEntries([
+      ["_all", { started: "All sessions" }],
+      ...sessions,
+    ]);
+    Histogram.STATE.users = Object.fromEntries(
+      Object.entries(Histogram.STATE.users).sort((a, b) => {
+        if (a[1].name < b[1].name) return -1;
+        if (a[1].name > b[1].name) return 1;
+        return 0;
+      }),
+    );
+    Histogram.STATE.types = Object.fromEntries(
+      Object.entries(Histogram.STATE.types).sort((a, b) => {
+        if (a[1].name < b[1].name) return -1;
+        if (a[1].name > b[1].name) return 1;
+        return 0;
+      }),
+    );
     context = { ...context, ...Histogram.STATE };
-    context.filteredResults = this.filter(context);
+    context.filteredResults = this.filter(context, results);
 
     return context;
   }

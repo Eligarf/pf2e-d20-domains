@@ -1,3 +1,8 @@
+# pending
+
+- Add transfer dialog to move logs to a different user
+- Reduce the use of statics in Histogram state
+
 # v0.7.0
 
 - Display dice results using dynamic bar chart

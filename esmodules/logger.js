@@ -1,4 +1,4 @@
-import { MODULE_ID, log, interpolateString } from "./main.js";
+import { MODULE_ID, log, interpolateString, getActiveGM } from "./main.js";
 
 /*global foundry, game, Hooks*/
 /*eslint no-undef: "error"*/
@@ -90,12 +90,6 @@ async function eraseData() {
   );
 }
 
-function getActiveGM() {
-  let activeGMs = game.users.filter((u) => u.active && u.isGM);
-  activeGMs.sort((a, b) => b.id - a.id);
-  return activeGMs[0] || null;
-}
-
 async function recordRoll({
   messageId,
   type,
@@ -126,9 +120,11 @@ async function recordRoll({
     now: new Date(Date.now()),
     type: adjustedType,
     messageId,
+    rollerId,
+    vsId,
   };
-  if (rollerId !== gmId) entry.rollerId = rollerId;
-  if (vsId !== gmId) entry.vsId = vsId;
+  // if (rollerId !== gmId) entry.rollerId = rollerId;
+  // if (vsId !== gmId) entry.vsId = vsId;
   if (dos !== TABLE[0]) entry.dos = dos;
   if (!isNaN(needs)) entry.needed = needs;
   update[`flags.${MODULE_ID}.rolls.${d20}.${foundry.utils.randomID()}`] = entry;

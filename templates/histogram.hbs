@@ -20,35 +20,35 @@
               <tr>
                 <td
                   style="height:10px; background-color:green;"
-                >{{criticalSuccesses}}</td>
+                >{{criticalSuccesses.count}}</td>
               </tr>
             {{/if}}
             {{#if successes}}
               <tr>
                 <td
                   style="height:10px; background-color:blue;"
-                >{{successes}}</td>
+                >{{successes.count}}</td>
               </tr>
             {{/if}}
             {{#if failures}}
               <tr>
                 <td
                   style="height:10px; background-color:orange;"
-                >{{failures}}</td>
+                >{{failures.count}}</td>
               </tr>
             {{/if}}
             {{#if criticalFailures}}
               <tr>
                 <td
                   style="height:10px; background-color:red;"
-                >{{criticalFailures}}</td>
+                >{{criticalFailures.count}}</td>
               </tr>
             {{/if}}
             {{#if unknowns}}
               <tr>
                 <td
                   style="height:10px; background-color:gray;"
-                >{{unknowns}}</td>
+                >{{unknowns.count}}</td>
               </tr>
             {{/if}}
           </table>
@@ -63,15 +63,17 @@
   </table>
   <br />
   <div>
+    {{!-- enable this once we've figure out how to do this filtering
     <h3>Session</h3>
     <select name="session">
       {{#select selected}}
         {{#each sessions}}
-          <option value="{{@key}}">{{started}}</option>
+          <option value="{{@key}}">{{started}} - {{ended}}</option>
         {{/each}}
       {{/select}}
     </select>
     <br />
+    --}}
     <div>
       <h3>Users</h3>
       {{#each users}}

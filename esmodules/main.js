@@ -1,4 +1,4 @@
-export { MODULE_ID, log, interpolateString };
+export { MODULE_ID, log, interpolateString, getActiveGM };
 import {
   initializeLogging,
   startLogging,
@@ -29,6 +29,12 @@ function interpolateString(str, interpolations) {
   return str.replace(/\{([A-Za-z0-9_]+)\}/g, (match, key) =>
     interpolations.hasOwnProperty(key) ? interpolations[key] : match,
   );
+}
+
+function getActiveGM() {
+  let activeGMs = game.users.filter((u) => u.active && u.isGM);
+  activeGMs.sort((a, b) => b.id - a.id);
+  return activeGMs[0] || null;
 }
 
 function migrate(moduleVersion, oldVersion) {
