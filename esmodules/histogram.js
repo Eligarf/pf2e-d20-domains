@@ -22,6 +22,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   static STATE = {
     users: {},
     types: {},
+    domains: {},
   };
 
   static DEFAULT_OPTIONS = {
@@ -35,6 +36,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     actions: {
       onUser: Histogram.onUser,
       onType: Histogram.onType,
+      onDomain: Histogram.onDomain,
     },
     window: {
       icon: "fas fa-chart",
@@ -67,6 +69,13 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     await this.render();
   }
 
+  static async onDomain(event, target) {
+    let { name, checked } = target;
+    name = name.split("-").slice(1).join("-");
+    Histogram.STATE.domains[name].enabled = checked;
+    await this.render();
+  }
+
   filter(context, rawResults) {
     let results = {};
     for (let f of Object.keys(rawResults)) {
@@ -85,11 +94,50 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       let result = {
         rolls: rolls,
       };
-      if (critFails.length > 0)
-        result.criticalFailures = { count: critFails.length };
-      if (fails.length > 0) result.failures = { count: fails.length };
-      if (successes.length > 0) result.successes = { count: successes.length };
-      if (crits.length > 0) result.criticalSuccesses = { count: crits.length };
+      if (critFails.length > 0) {
+        let failBy = 0;
+        for (let i in critFails) {
+          const result = critFails[i];
+          failBy += f - result.needed;
+        }
+        result.criticalFailures = {
+          count: critFails.length,
+          failedBy: failBy / critFails.length,
+        };
+      }
+      if (fails.length > 0) {
+        let failBy = 0;
+        for (let i in fails) {
+          const result = fails[i];
+          failBy += f - result.needed;
+        }
+        result.failures = {
+          count: fails.length,
+          failedBy: failBy / fails.length,
+        };
+      }
+      if (successes.length > 0) {
+        let succeedBy = 0;
+        for (let i in successes) {
+          const result = successes[i];
+          succeedBy += f - result.needed;
+        }
+        result.successes = {
+          count: successes.length,
+          succeededBy: succeedBy / successes.length,
+        };
+      }
+      if (crits.length > 0) {
+        let succeedBy = 0;
+        for (let i in crits) {
+          const result = crits[i];
+          succeedBy += f - result.needed;
+        }
+        result.criticalSuccesses = {
+          count: crits.length,
+          succeededBy: succeedBy / crits.length,
+        };
+      }
       if (unknowns.length > 0) result.unknowns = { count: unknowns.length };
       results[f] = result;
     }
@@ -132,6 +180,15 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         enabled: true,
       };
     }
+    function accrueDomain(domain) {
+      if (["all", "check"].includes(domain)) return;
+      if (domain in Histogram.STATE.domains) return;
+      Histogram.STATE.domains[domain] = {
+        name: domain,
+        gated: false,
+      };
+    }
+
     for (let face of Object.values(results)) {
       for (let i of face.rolls) {
         if (!i.rollerId) i.rollerId = gm.id;
@@ -139,6 +196,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!i.vsId) i.vsId = gm.id;
         accrueUserName(i.vsId);
         accrueType(i.type);
+        /* if (i.domains)
+          for (let d of i.domains) {
+            accrueDomain(d);
+          } */
       }
     }
 
@@ -165,6 +226,13 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     );
     Histogram.STATE.types = Object.fromEntries(
       Object.entries(Histogram.STATE.types).sort((a, b) => {
+        if (a[1].name < b[1].name) return -1;
+        if (a[1].name > b[1].name) return 1;
+        return 0;
+      }),
+    );
+    Histogram.STATE.domains = Object.fromEntries(
+      Object.entries(Histogram.STATE.domains).sort((a, b) => {
         if (a[1].name < b[1].name) return -1;
         if (a[1].name > b[1].name) return 1;
         return 0;

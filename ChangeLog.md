@@ -1,3 +1,8 @@
+# v0.9.0
+
+- Add tooltip to degree-of-success
+- Capture the domains of rolls
+
 # v0.8.2
 
 - Don't game erase on unlock

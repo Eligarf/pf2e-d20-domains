@@ -18,30 +18,31 @@
           >
             {{#if criticalSuccesses}}
               <tr>
-                <td
-                  style="height:10px; background-color:green;"
-                >{{criticalSuccesses.count}}</td>
+                <td style="height:10px; background-color:green;"><span
+                    data-tooltip="<div>Avg by {{criticalSuccesses.succeededBy}}</div>"
+                  >{{criticalSuccesses.count}}
+                  </span></td>
               </tr>
             {{/if}}
             {{#if successes}}
               <tr>
-                <td
-                  style="height:10px; background-color:blue;"
-                >{{successes.count}}</td>
+                <td style="height:10px; background-color:blue;"><span
+                    data-tooltip="<div>Avg by {{successes.succeededBy}}</div>"
+                  >{{successes.count}}</span></td>
               </tr>
             {{/if}}
             {{#if failures}}
               <tr>
-                <td
-                  style="height:10px; background-color:orange;"
-                >{{failures.count}}</td>
+                <td style="height:10px; background-color:orange;"><span
+                    data-tooltip="<div>Avg by {{failures.failedBy}}</div>"
+                  >{{failures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if criticalFailures}}
               <tr>
-                <td
-                  style="height:10px; background-color:red;"
-                >{{criticalFailures.count}}</td>
+                <td style="height:10px; background-color:red;"><span
+                    data-tooltip="<div>Avg by {{criticalFailures.failedBy}}</div>"
+                  >{{criticalFailures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if unknowns}}
@@ -99,5 +100,20 @@
         <label>{{name}}</label>
       {{/each}}
     </div>
+    {{!-- 
+    <br />
+    <div>
+      <h3>Domains</h3>
+      {{#each domains}}
+        <input
+          data-action="onDomain"
+          type="checkbox"
+          name="domain-{{@key}}"
+          {{checked enabled}}
+        />
+        <label>{{name}}</label>
+      {{/each}}
+    </div>
+    --}}
   </div>
 </div>

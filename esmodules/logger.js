@@ -97,6 +97,7 @@ async function recordRoll({
   needs = NaN,
   dos = TABLE[0],
   isReroll = false,
+  domains = [],
 }) {
   if (!g_sessionUuid) {
     if (!g_sessionWarned) {
@@ -121,10 +122,9 @@ async function recordRoll({
     rollerId,
     vsId,
   };
-  // if (rollerId !== gmId) entry.rollerId = rollerId;
-  // if (vsId !== gmId) entry.vsId = vsId;
   if (dos !== TABLE[0]) entry.dos = dos;
   if (!isNaN(needs)) entry.needed = needs;
+  if (domains.length) entry.domains = domains;
   update[`flags.${MODULE_ID}.rolls.${d20}.${foundry.utils.randomID()}`] = entry;
   await User.updateDocuments([update]);
 }
@@ -218,6 +218,7 @@ async function onVanillaAction(message, roll, rollOpt, type) {
     dos,
     needs,
     isReroll,
+    domains: context?.domains,
   });
 }
 
@@ -231,11 +232,12 @@ async function onRecallKnowledge(message, roll) {
     type: "skill-check",
     roller,
     d20,
+    domains: ["skill-check"],
   });
 }
 
 async function onToolBelt(message, toolbelt) {
-  // log('onToolBelt',{message, toolbelt});
+  log("onToolBelt", { message, toolbelt });
   const saves = toolbelt?.targetHelper?.saves;
   const actorUuid = message?.flags?.pf2e?.origin?.actor;
   const actor = actorUuid ? await fromUuid(actorUuid) : null;
@@ -261,6 +263,7 @@ async function onToolBelt(message, toolbelt) {
       dos,
       needs,
       isReroll,
+      domains: save.roll.options?.domains,
     });
   }
 }
