@@ -1,3 +1,8 @@
+# v0.10.0
+
+- Add CSS
+- Add domain checkboxes
+
 # v0.9.0
 
 - Add tooltip to degree-of-success

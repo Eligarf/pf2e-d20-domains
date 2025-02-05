@@ -1,0 +1,41 @@
+.pf2e-d20-love-meter-histogram {
+  border: none;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pf2e-d20-love-meter-histogram-col {
+  padding: 2px;
+  vertical-align: bottom;
+}
+
+.pf2e-d20-love-meter-bar {
+  border: none;
+  border-collapse: collapse;
+  width: 20px;
+}
+
+.pf2e-d20-love-meter-success-critical {
+  height: 10px;
+  background-color: green;
+}
+
+.pf2e-d20-love-meter-success {
+  height: 10px;
+  background-color: blue;
+}
+
+.pf2e-d20-love-meter-failure {
+  height: 10px;
+  background-color: orange;
+}
+
+.pf2e-d20-love-meter-failure-critical {
+  height: 10px;
+  background-color: red;
+}
+
+.pf2e-d20-love-meter-unknown {
+  height: 10px;
+  background-color: gray;
+}

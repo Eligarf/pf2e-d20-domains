@@ -1,55 +1,53 @@
 <div>
   <table
+    class="pf2e-d20-love-meter-histogram"
     border="0"
     cellpadding="0"
     cellspacing="0"
     role="presentation"
-    style="border: none; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;"
   >
     <tr>
       {{#each filteredResults}}
-        <td style="padding:2px; vertical-align:bottom;">
+        <td class="pf2e-d20-love-meter-histogram-col">
           <table
+            class="pf2e-d20-love-meter-bar"
             border="0"
             cellpadding="0"
             cellspacing="0"
             role="presentation"
-            style="border: none; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; width:40px;"
           >
             {{#if criticalSuccesses}}
               <tr>
-                <td style="height:10px; background-color:green;"><span
-                    data-tooltip="<div>Avg by {{criticalSuccesses.succeededBy}}</div>"
+                <td class="pf2e-d20-love-meter-success-critical"><span
+                    data-tooltip="<div>{{criticalSuccesses.by}}</div>"
                   >{{criticalSuccesses.count}}
                   </span></td>
               </tr>
             {{/if}}
             {{#if successes}}
               <tr>
-                <td style="height:10px; background-color:blue;"><span
-                    data-tooltip="<div>Avg by {{successes.succeededBy}}</div>"
+                <td class="pf2e-d20-love-meter-success"><span
+                    data-tooltip="<div>{{successes.by}}</div>"
                   >{{successes.count}}</span></td>
               </tr>
             {{/if}}
             {{#if failures}}
               <tr>
-                <td style="height:10px; background-color:orange;"><span
-                    data-tooltip="<div>Avg by {{failures.failedBy}}</div>"
+                <td class="pf2e-d20-love-meter-failure"><span
+                    data-tooltip="<div>{{failures.by}}</div>"
                   >{{failures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if criticalFailures}}
               <tr>
-                <td style="height:10px; background-color:red;"><span
-                    data-tooltip="<div>Avg by {{criticalFailures.failedBy}}</div>"
+                <td class="pf2e-d20-love-meter-failure-critical"><span
+                    data-tooltip="<div>{{criticalFailures.by}}</div>"
                   >{{criticalFailures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if unknowns}}
               <tr>
-                <td
-                  style="height:10px; background-color:gray;"
-                >{{unknowns.count}}</td>
+                <td class="pf2e-d20-love-meter-unknown">{{unknowns.count}}</td>
               </tr>
             {{/if}}
           </table>
@@ -65,7 +63,7 @@
   <br />
   <div>
     {{!-- enable this once we've figure out how to do this filtering
-    <h3>Session</h3>
+    <h3>{{localize "pf2e-d20-love-meter.histogram.session"}}</h3>
     <select name="session">
       {{#select selected}}
         {{#each sessions}}
@@ -76,7 +74,7 @@
     <br />
     --}}
     <div>
-      <h3>Users</h3>
+      <h3>{{localize "pf2e-d20-love-meter.histogram.users"}}</h3>
       {{#each users}}
         <input
           data-action="onUser"
@@ -89,7 +87,7 @@
     </div>
     <br />
     <div>
-      <h3>Types</h3>
+      <h3>{{localize "pf2e-d20-love-meter.histogram.types"}}</h3>
       {{#each types}}
         <input
           data-action="onType"
@@ -97,23 +95,21 @@
           name="type-{{@key}}"
           {{checked enabled}}
         />
-        <label>{{name}}</label>
+        <label>{{@key}}</label>
       {{/each}}
     </div>
-    {{!-- 
     <br />
     <div>
-      <h3>Domains</h3>
+      <h3>{{localize "pf2e-d20-love-meter.histogram.domains"}}</h3>
       {{#each domains}}
         <input
           data-action="onDomain"
           type="checkbox"
           name="domain-{{@key}}"
-          {{checked enabled}}
+          {{checked gated}}
         />
-        <label>{{name}}</label>
+        <label>{{@key}}</label>
       {{/each}}
     </div>
-    --}}
   </div>
 </div>

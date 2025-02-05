@@ -72,18 +72,23 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   static async onDomain(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.domains[name].enabled = checked;
+    Histogram.STATE.domains[name].gated = checked;
     await this.render();
   }
 
   filter(context, rawResults) {
     let results = {};
+    const gated = Object.entries(context.domains).filter(([k, v]) => v.gated);
     for (let f of Object.keys(rawResults)) {
       const rolls = rawResults[f]?.rolls?.filter((r) => {
         if (!context.users[r.rollerId].enabled) return false;
         if (!context.types[r.type].enabled) return false;
+        for (let [k] of gated) {
+          if (!r?.domains?.includes(k)) return false;
+        }
         return true;
       });
+
       const critFails = rolls?.filter((r) => r?.dos === "criticalFailure");
       const fails = rolls?.filter((r) => r?.dos === "failure");
       const successes = rolls?.filter((r) => r?.dos === "success");
@@ -91,51 +96,41 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       const unknowns = rolls?.filter(
         (r) => !("dos" in r) || r.dos === "unknown",
       );
+
+      function dosBy(bucket) {
+        let by = 0;
+        for (let i in bucket) {
+          const result = bucket[i];
+          by += f - result.needed;
+        }
+        return (by / bucket.length).toFixed(1);
+      }
+
       let result = {
         rolls: rolls,
       };
       if (critFails.length > 0) {
-        let failBy = 0;
-        for (let i in critFails) {
-          const result = critFails[i];
-          failBy += f - result.needed;
-        }
         result.criticalFailures = {
           count: critFails.length,
-          failedBy: failBy / critFails.length,
+          by: dosBy(critFails),
         };
       }
       if (fails.length > 0) {
-        let failBy = 0;
-        for (let i in fails) {
-          const result = fails[i];
-          failBy += f - result.needed;
-        }
         result.failures = {
           count: fails.length,
-          failedBy: failBy / fails.length,
+          by: dosBy(fails),
         };
       }
       if (successes.length > 0) {
-        let succeedBy = 0;
-        for (let i in successes) {
-          const result = successes[i];
-          succeedBy += f - result.needed;
-        }
         result.successes = {
           count: successes.length,
-          succeededBy: succeedBy / successes.length,
+          by: dosBy(successes),
         };
       }
       if (crits.length > 0) {
-        let succeedBy = 0;
-        for (let i in crits) {
-          const result = crits[i];
-          succeedBy += f - result.needed;
-        }
         result.criticalSuccesses = {
           count: crits.length,
-          succeededBy: succeedBy / crits.length,
+          by: dosBy(crits),
         };
       }
       if (unknowns.length > 0) result.unknowns = { count: unknowns.length };
@@ -176,7 +171,6 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     function accrueType(type) {
       if (type in Histogram.STATE.types) return;
       Histogram.STATE.types[type] = {
-        name: type,
         enabled: true,
       };
     }
@@ -184,7 +178,6 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       if (["all", "check"].includes(domain)) return;
       if (domain in Histogram.STATE.domains) return;
       Histogram.STATE.domains[domain] = {
-        name: domain,
         gated: false,
       };
     }
@@ -196,10 +189,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!i.vsId) i.vsId = gm.id;
         accrueUserName(i.vsId);
         accrueType(i.type);
-        /* if (i.domains)
+        if (i.domains)
           for (let d of i.domains) {
             accrueDomain(d);
-          } */
+          }
       }
     }
 
@@ -226,15 +219,15 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     );
     Histogram.STATE.types = Object.fromEntries(
       Object.entries(Histogram.STATE.types).sort((a, b) => {
-        if (a[1].name < b[1].name) return -1;
-        if (a[1].name > b[1].name) return 1;
+        if (a[0] < b[0]) return -1;
+        if (a[0] > b[0]) return 1;
         return 0;
       }),
     );
     Histogram.STATE.domains = Object.fromEntries(
       Object.entries(Histogram.STATE.domains).sort((a, b) => {
-        if (a[1].name < b[1].name) return -1;
-        if (a[1].name > b[1].name) return 1;
+        if (a[0] < b[0]) return -1;
+        if (a[0] > b[0]) return 1;
         return 0;
       }),
     );

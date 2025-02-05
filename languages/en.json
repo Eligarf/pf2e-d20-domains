@@ -29,7 +29,11 @@
       }
     },
     "histogram": {
-      "title": "Rolls histogram"
+      "title": "Rolls histogram",
+      "session": "Session",
+      "users": "Users",
+      "types": "Types",
+      "domains": "Domains"
     },
     "timeline": {
       "title": "Rolls timeline"

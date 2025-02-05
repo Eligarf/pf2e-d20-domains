@@ -28,6 +28,7 @@
     ]
   },
   "esmodules": ["esmodules/main.js", "esmodules/logger.js"],
+  "styles": ["styles/style.css"],
   "languages": [
     {
       "lang": "en",
