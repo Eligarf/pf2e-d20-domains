@@ -2,7 +2,7 @@ import { log, interpolateString } from "./main.js";
 import { TEST_LOG } from "./test-data.js";
 export { doTimeline };
 
-const MODULE_ID = "pf2e-d20-love-meter";
+const MODULE_ID = "pf2e-d20-domains";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 

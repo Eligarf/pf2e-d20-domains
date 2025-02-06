@@ -1,5 +1,5 @@
 {
-  "pf2e-d20-love-meter": {
+  "pf2e-d20-domains": {
     "notifications": {
       "createSession": "Session {SessionUuid} created",
       "terminateSession": "Session {SessionUuid} terminated",

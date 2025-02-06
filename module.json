@@ -1,7 +1,7 @@
 {
-  "id": "pf2e-d20-love-meter",
-  "title": "PF2e d20 Love Meter",
-  "description": "Answers the question of whether your PF2e d20's love you or are spiteful orbs of hate",
+  "id": "pf2e-d20-domains",
+  "title": "PF2e d20 Domains",
+  "description": "Records the domains associated with all d20 rolls logged",
   "authors": [
     {
       "name": "Rule",
@@ -10,7 +10,7 @@
       "ko-fi": "rule671908"
     }
   ],
-  "version": "0.1.0",
+  "version": "0.11.0",
   "compatibility": {
     "minimum": "12",
     "maximum": "12",
@@ -38,11 +38,11 @@
     }
   ],
   "socket": true,
-  "url": "https://github.com/Eligarf/pf2e-d20-love-meter",
+  "url": "https://github.com/Eligarf/pf2e-d20-domains",
   "manifest": "replaced",
   "download": "replaced",
   "changelog": "replaced",
-  "bugs": "https://github.com/Eligarf/pf2e-d20-love-meter/issues",
+  "bugs": "https://github.com/Eligarf/pf2e-d20-domains/issues",
   "readme": "replaced",
   "license": "replaced"
 }

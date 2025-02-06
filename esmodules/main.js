@@ -11,7 +11,7 @@ import { doTimeline } from "./timeline.js";
 import { TransferApplication } from "./transfer.js";
 
 const CONSOLE_COLORS = ["background: #222; color: #ffff80", "color: #fff"];
-const MODULE_ID = "pf2e-d20-love-meter";
+const MODULE_ID = "pf2e-d20-domains";
 
 function colorizeOutput(format, ...args) {
   return [`%c${MODULE_ID} %c|`, ...CONSOLE_COLORS, format, ...args];
@@ -39,7 +39,65 @@ function getGM() {
   return gms[0];
 }
 
-function migrate(moduleVersion, oldVersion) {
+function versionAtLeast(version, target) {
+  var a = version.split(".");
+  var b = target.split(".");
+
+  for (var i = 0; i < a.length; ++i) {
+    a[i] = Number(a[i]);
+  }
+  for (var i = 0; i < b.length; ++i) {
+    b[i] = Number(b[i]);
+  }
+  if (a.length == 2) {
+    a[2] = 0;
+  }
+
+  if (a[0] > b[0]) return true;
+  if (a[0] < b[0]) return false;
+
+  if (a[1] > b[1]) return true;
+  if (a[1] < b[1]) return false;
+
+  if (a[2] > b[2]) return true;
+  if (a[2] < b[2]) return false;
+
+  return true;
+}
+
+async function migrate_to_0_11(oldVersion) {
+  const newVersion = "0.11.0";
+  log(`migrate ${oldVersion} => ${newVersion}`);
+  const oldModuleId = "pf2e-d20-love-meter";
+  const logs = game.user.flags[oldModuleId];
+  if (!logs) return newVersion;
+
+  let update = { _id: game.user.id };
+  update[`flags.-=${oldModuleId}`] = true;
+  if (logs.session) {
+    update[`flags.${MODULE_ID}.session`] = logs.session;
+  }
+  for (let s in logs.sessions) {
+    update[`flags.${MODULE_ID}.sessions.${s}`] = logs.sessions[s];
+  }
+  for (let r in logs.rolls) {
+    const roll = logs.rolls[r];
+    for (let i in roll) {
+      update[`flags.${MODULE_ID}.rolls.${r}.${i}`] = roll[i];
+    }
+  }
+  log("update", { user: game.user, update });
+  await User.updateDocuments([update]);
+  return newVersion;
+}
+
+async function migrate(moduleVersion, oldVersion) {
+  if (versionAtLeast(oldVersion, moduleVersion)) return moduleVersion;
+
+  let newVersion = oldVersion;
+  if (!versionAtLeast(oldVersion, "0.11.0")) {
+    newVersion = await migrate_to_0_11(oldVersion);
+  }
   ui.notifications.warn(
     interpolateString(
       game.i18n.localize(`${MODULE_ID}.notifications.updated`),
@@ -101,8 +159,10 @@ Hooks.once("setup", () => {
     config: true,
     type: String,
     default: `${moduleVersion}`,
-    onChange: (value) => {
-      const newValue = migrate(moduleVersion, value);
+    onChange: async (value) => {
+      log(`schema value was '${value}'`);
+      const newValue = await migrate(moduleVersion, value);
+      log(`new schema value is '${newValue}'`);
       if (value != newValue) {
         game.settings.set(MODULE_ID, "schema", newValue);
       }
@@ -110,22 +170,23 @@ Hooks.once("setup", () => {
   });
   const schemaVersion = game.settings.get(MODULE_ID, "schema");
   if (schemaVersion !== moduleVersion) {
-    Hooks.once("ready", () => {
-      game.settings.set(
-        MODULE_ID,
-        "schema",
-        migrate(moduleVersion, schemaVersion),
-      );
+    Hooks.once("ready", async () => {
+      log(`Ready hook: migrating '${schemaVersion}' to '${moduleVersion}'`);
+      const newVersion = await migrate(moduleVersion, schemaVersion);
+      log(`new version = '${newVersion}'`);
+      game.settings.set(MODULE_ID, "schema", newVersion);
     });
   }
 
   initializeLayer();
-  log(`Setup ${moduleVersion}`);
+  log(`${MODULE_ID} ${moduleVersion} Setup`);
 });
 
 Hooks.once("ready", async () => {
   await initializeLogging();
-  log("Ready");
+  const module = game.modules.get(MODULE_ID);
+  const moduleVersion = module.version;
+  log(`${MODULE_ID} ${moduleVersion} Ready`);
 });
 
 Hooks.on("renderSettingsConfig", (app, html, data) => {

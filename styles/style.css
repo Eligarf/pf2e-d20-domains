@@ -1,41 +1,41 @@
-.pf2e-d20-love-meter-histogram {
+.pf2e-d20-domains-histogram {
   border: none;
   border-collapse: collapse;
   width: 100%;
 }
 
-.pf2e-d20-love-meter-histogram-col {
+.pf2e-d20-domains-histogram-col {
   padding: 2px;
   vertical-align: bottom;
 }
 
-.pf2e-d20-love-meter-bar {
+.pf2e-d20-domains-bar {
   border: none;
   border-collapse: collapse;
   width: 20px;
 }
 
-.pf2e-d20-love-meter-success-critical {
+.pf2e-d20-domains-success-critical {
   height: 10px;
   background-color: green;
 }
 
-.pf2e-d20-love-meter-success {
+.pf2e-d20-domains-success {
   height: 10px;
   background-color: blue;
 }
 
-.pf2e-d20-love-meter-failure {
+.pf2e-d20-domains-failure {
   height: 10px;
   background-color: orange;
 }
 
-.pf2e-d20-love-meter-failure-critical {
+.pf2e-d20-domains-failure-critical {
   height: 10px;
   background-color: red;
 }
 
-.pf2e-d20-love-meter-unknown {
+.pf2e-d20-domains-unknown {
   height: 10px;
   background-color: gray;
 }

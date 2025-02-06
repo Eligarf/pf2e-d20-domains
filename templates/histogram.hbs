@@ -1,6 +1,6 @@
 <div>
   <table
-    class="pf2e-d20-love-meter-histogram"
+    class="pf2e-d20-domains-histogram"
     border="0"
     cellpadding="0"
     cellspacing="0"
@@ -8,9 +8,9 @@
   >
     <tr>
       {{#each filteredResults}}
-        <td class="pf2e-d20-love-meter-histogram-col">
+        <td class="pf2e-d20-domains-histogram-col">
           <table
-            class="pf2e-d20-love-meter-bar"
+            class="pf2e-d20-domains-bar"
             border="0"
             cellpadding="0"
             cellspacing="0"
@@ -18,7 +18,7 @@
           >
             {{#if criticalSuccesses}}
               <tr>
-                <td class="pf2e-d20-love-meter-success-critical"><span
+                <td class="pf2e-d20-domains-success-critical"><span
                     data-tooltip="<div>{{criticalSuccesses.by}}</div>"
                   >{{criticalSuccesses.count}}
                   </span></td>
@@ -26,28 +26,28 @@
             {{/if}}
             {{#if successes}}
               <tr>
-                <td class="pf2e-d20-love-meter-success"><span
+                <td class="pf2e-d20-domains-success"><span
                     data-tooltip="<div>{{successes.by}}</div>"
                   >{{successes.count}}</span></td>
               </tr>
             {{/if}}
             {{#if failures}}
               <tr>
-                <td class="pf2e-d20-love-meter-failure"><span
+                <td class="pf2e-d20-domains-failure"><span
                     data-tooltip="<div>{{failures.by}}</div>"
                   >{{failures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if criticalFailures}}
               <tr>
-                <td class="pf2e-d20-love-meter-failure-critical"><span
+                <td class="pf2e-d20-domains-failure-critical"><span
                     data-tooltip="<div>{{criticalFailures.by}}</div>"
                   >{{criticalFailures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if unknowns}}
               <tr>
-                <td class="pf2e-d20-love-meter-unknown">{{unknowns.count}}</td>
+                <td class="pf2e-d20-domains-unknown">{{unknowns.count}}</td>
               </tr>
             {{/if}}
           </table>
@@ -63,7 +63,7 @@
   <br />
   <div>
     {{!-- enable this once we've figure out how to do this filtering
-    <h3>{{localize "pf2e-d20-love-meter.histogram.session"}}</h3>
+    <h3>{{localize "pf2e-d20-domains.histogram.session"}}</h3>
     <select name="session">
       {{#select selected}}
         {{#each sessions}}
@@ -74,7 +74,7 @@
     <br />
     --}}
     <div>
-      <h3>{{localize "pf2e-d20-love-meter.histogram.users"}}</h3>
+      <h3>{{localize "pf2e-d20-domains.histogram.users"}}</h3>
       {{#each users}}
         <input
           data-action="onUser"
@@ -87,7 +87,7 @@
     </div>
     <br />
     <div>
-      <h3>{{localize "pf2e-d20-love-meter.histogram.types"}}</h3>
+      <h3>{{localize "pf2e-d20-domains.histogram.types"}}</h3>
       {{#each types}}
         <input
           data-action="onType"
@@ -100,7 +100,7 @@
     </div>
     <br />
     <div>
-      <h3>{{localize "pf2e-d20-love-meter.histogram.domains"}}</h3>
+      <h3>{{localize "pf2e-d20-domains.histogram.domains"}}</h3>
       {{#each domains}}
         <input
           data-action="onDomain"
