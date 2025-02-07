@@ -1,3 +1,7 @@
+# v0.11.1
+
+- Update all users in migrate, not just gm
+
 # v0.11.0
 
 - Changed name to pf2e-d20-domains

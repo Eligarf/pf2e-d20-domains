@@ -69,25 +69,32 @@ async function migrate_to_0_11(oldVersion) {
   const newVersion = "0.11.0";
   log(`migrate ${oldVersion} => ${newVersion}`);
   const oldModuleId = "pf2e-d20-love-meter";
-  const logs = game.user.flags[oldModuleId];
-  if (!logs) return newVersion;
+  let updates = [];
 
-  let update = { _id: game.user.id };
-  update[`flags.-=${oldModuleId}`] = true;
-  if (logs.session) {
-    update[`flags.${MODULE_ID}.session`] = logs.session;
-  }
-  for (let s in logs.sessions) {
-    update[`flags.${MODULE_ID}.sessions.${s}`] = logs.sessions[s];
-  }
-  for (let r in logs.rolls) {
-    const roll = logs.rolls[r];
-    for (let i in roll) {
-      update[`flags.${MODULE_ID}.rolls.${r}.${i}`] = roll[i];
+  for (let user of game.users) {
+    const logs = user.flags[oldModuleId];
+    if (!logs) continue;
+
+    let update = { _id: user.id };
+
+    update[`flags.-=${oldModuleId}`] = true;
+    if (logs.session) {
+      update[`flags.${MODULE_ID}.session`] = logs.session;
     }
+    for (let s in logs.sessions) {
+      update[`flags.${MODULE_ID}.sessions.${s}`] = logs.sessions[s];
+    }
+    for (let r in logs.rolls) {
+      const roll = logs.rolls[r];
+      for (let i in roll) {
+        update[`flags.${MODULE_ID}.rolls.${r}.${i}`] = roll[i];
+      }
+    }
+    updates.push(update);
   }
-  log("update", { user: game.user, update });
-  await User.updateDocuments([update]);
+
+  log("updates", updates);
+  await User.updateDocuments(updates);
   return newVersion;
 }
 
