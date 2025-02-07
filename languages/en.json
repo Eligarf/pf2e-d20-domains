@@ -4,12 +4,12 @@
       "createSession": "Session {SessionUuid} created",
       "terminateSession": "Session {SessionUuid} terminated",
       "noSession": "No active Session to record rolls",
-      "update": "Updated PF2e d20 Love Meter data from {oldVersion} to {moduleVersion}",
+      "updated": "Updated PF2e d20 Domains data from {oldVersion} to {moduleVersion}",
       "erased": "All roll data erased",
       "stopSession": "Session must be stopped before log can be transferred"
     },
     "control": {
-      "title": "d20 Love Meter",
+      "title": "PF2e d20 Domains",
       "startLogging": "Start logging rolls",
       "stopLogging": "Pause logging rolls",
       "endSession": "End session",
@@ -30,7 +30,7 @@
     },
     "histogram": {
       "title": "Rolls histogram",
-      "session": "Session",
+      "sessions": "Sessions",
       "users": "Users",
       "types": "Types",
       "domains": "Domains"

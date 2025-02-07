@@ -62,17 +62,6 @@
   </table>
   <br />
   <div>
-    {{!-- enable this once we've figure out how to do this filtering
-    <h3>{{localize "pf2e-d20-domains.histogram.session"}}</h3>
-    <select name="session">
-      {{#select selected}}
-        {{#each sessions}}
-          <option value="{{@key}}">{{started}} - {{ended}}</option>
-        {{/each}}
-      {{/select}}
-    </select>
-    <br />
-    --}}
     <div>
       <h3>{{localize "pf2e-d20-domains.histogram.users"}}</h3>
       {{#each users}}
@@ -109,6 +98,19 @@
           {{checked gated}}
         />
         <label>{{@key}}</label>
+      {{/each}}
+    </div>
+    <br />
+    <div>
+      <h3>{{localize "pf2e-d20-domains.histogram.sessions"}}</h3>
+      {{#each sessions}}
+        <input
+          data-action="onSession"
+          type="checkbox"
+          name="session-{{@key}}"
+          {{checked enabled}}
+        />
+        <label>{{started}}</label>
       {{/each}}
     </div>
   </div>

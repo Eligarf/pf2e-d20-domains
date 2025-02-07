@@ -23,6 +23,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     users: {},
     types: {},
     domains: {},
+    sessions: {},
   };
 
   static DEFAULT_OPTIONS = {
@@ -34,6 +35,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       closeOnSubmit: false,
     },
     actions: {
+      onSession: Histogram.onSession,
       onUser: Histogram.onUser,
       onType: Histogram.onType,
       onDomain: Histogram.onDomain,
@@ -57,7 +59,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static async onUser(event, target) {
     let { name, checked } = target;
-    name = name.split("-")[1];
+    name = name.split("-").slice(1).join("-");
     Histogram.STATE.users[name].enabled = checked;
     await this.render();
   }
@@ -72,20 +74,30 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   static async onDomain(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.domains[name].gated = checked;
+    Histogram.STATE.domains[name].enabled = checked;
+    await this.render();
+  }
+
+  static async onSession(event, target) {
+    let { name, checked } = target;
+    name = name.split("-").slice(1).join("-");
+    Histogram.STATE.sessions[name].enabled = checked;
     await this.render();
   }
 
   filter(context, rawResults) {
     let results = {};
-    const gated = Object.entries(context.domains).filter(([k, v]) => v.gated);
+    const enabled = Object.entries(context.domains).filter(
+      ([k, v]) => v.enabled,
+    );
     for (let f of Object.keys(rawResults)) {
       const rolls = rawResults[f]?.rolls?.filter((r) => {
         if (!context.users[r.rollerId].enabled) return false;
         if (!context.types[r.type].enabled) return false;
-        for (let [k] of gated) {
+        for (let [k] of enabled) {
           if (!r?.domains?.includes(k)) return false;
         }
+        if (!context.sessions[r.session].enabled) return false;
         return true;
       });
 
@@ -178,7 +190,15 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       if (["all", "check"].includes(domain)) return;
       if (domain in Histogram.STATE.domains) return;
       Histogram.STATE.domains[domain] = {
-        gated: false,
+        enabled: false,
+      };
+    }
+    function accrueSession(session) {
+      if (session in Histogram.STATE.sessions) return;
+      Histogram.STATE.sessions[session] = {
+        started: new Date(srcLog.sessions[session].started),
+        ended: new Date(srcLog.sessions[session].ended),
+        enabled: true,
       };
     }
 
@@ -193,23 +213,17 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           for (let d of i.domains) {
             accrueDomain(d);
           }
+        accrueSession(i.session);
       }
     }
 
-    // Sort the accrued values for presentation
-    const sessions = Object.entries(srcLog.sessions)
-      .sort((a, b) => {
+    Histogram.STATE.sessions = Object.fromEntries(
+      Object.entries(Histogram.STATE.sessions).sort((a, b) => {
         if (a[1].started < b[1].started) return -1;
         if (a[1].started > b[1].started) return 1;
         return 0;
-      })
-      .map(([k, v]) => {
-        return [k, { started: new Date(v.started), ended: new Date(v.ended) }];
-      });
-    Histogram.STATE.sessions = Object.fromEntries([
-      ["_all", { started: "All sessions" }],
-      ...sessions,
-    ]);
+      }),
+    );
     Histogram.STATE.users = Object.fromEntries(
       Object.entries(Histogram.STATE.users).sort((a, b) => {
         if (a[1].name < b[1].name) return -1;

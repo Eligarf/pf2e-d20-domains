@@ -15,7 +15,7 @@ Do your d20's love you, or are they spiteful little orbs of hate? This is a cent
 
 This is self-therapy for an extended run of bad luck with my characters. Either I get "proof" of the "unfairness" of disadvantage that my characters labor under, or I make the problem go away by shining the _spotlight of truth_ upon the baleful d20s and they start behaving with a more uniform distribution. There are other dice loggers out there that I could use, but they don't capture the greater context of the rolls other than if it is an attack roll.
 
-## But as a GM, I have to "build mystery" by hiding everything, obfuscating feedback and consequently reducing player agency
+## But as a GM, I have to "build mystery" by hiding everything, obfuscating feedback and impairing player agency
 
 Well, don't use this then. While not visible to the player on the chat card, the domain, DC, and die roll data you are hoarding is available in the html regardless of your desires about the precious, and those are essential for truly evaluating the malevolence within the d20s. It is an unrelenting and irrevocable war between the player's dice and the GM's, so one also needs the know if the GMs dice only get hot against them - poor player rolling seems to excite the GM's dice when specifically rolling against them. This conspiracy needs unmasking.
 
