@@ -89,19 +89,6 @@
     </div>
     <br />
     <div>
-      <h3>{{localize "pf2e-d20-domains.histogram.domains"}}</h3>
-      {{#each domains}}
-        <input
-          data-action="onDomain"
-          type="checkbox"
-          name="domain-{{@key}}"
-          {{checked gated}}
-        />
-        <label>{{@key}}</label>
-      {{/each}}
-    </div>
-    <br />
-    <div>
       <h3>{{localize "pf2e-d20-domains.histogram.sessions"}}</h3>
       {{#each sessions}}
         <input
@@ -111,6 +98,19 @@
           {{checked enabled}}
         />
         <label>{{started}}</label>
+      {{/each}}
+    </div>
+    <br />
+    <div>
+      <h3>{{localize "pf2e-d20-domains.histogram.domains"}}</h3>
+      {{#each domains}}
+        <input
+          data-action="onDomain"
+          type="checkbox"
+          name="domain-{{@key}}"
+          {{checked enabled}}
+        />
+        <label>{{@key}}</label>
       {{/each}}
     </div>
   </div>

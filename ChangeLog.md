@@ -1,3 +1,7 @@
+# v0.12.0
+
+- Filter domain lists to only show domains that apply post-filter
+
 # v0.11.1
 
 - Update all users in migrate, not just gm

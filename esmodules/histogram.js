@@ -1,5 +1,4 @@
 import { log, interpolateString, getGM } from "./main.js";
-// import { TEST_LOG, TEST_USER_ID } from "./test-data.js";
 export { doHistogram };
 
 const MODULE_ID = "pf2e-d20-domains";
@@ -75,6 +74,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
     Histogram.STATE.domains[name].enabled = checked;
+    log("domains", { name, checked });
     await this.render();
   }
 
@@ -90,6 +90,16 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     const enabled = Object.entries(context.domains).filter(
       ([k, v]) => v.enabled,
     );
+
+    let domains = {};
+    function accrueDomain(domain) {
+      if (["all", "check"].includes(domain)) return;
+      if (domain in domains) return;
+      domains[domain] = {
+        enabled: context.domains[domain].enabled,
+      };
+    }
+
     for (let f of Object.keys(rawResults)) {
       const rolls = rawResults[f]?.rolls?.filter((r) => {
         if (!context.users[r.rollerId].enabled) return false;
@@ -98,6 +108,11 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           if (!r?.domains?.includes(k)) return false;
         }
         if (!context.sessions[r.session].enabled) return false;
+
+        if (r.domains)
+          for (let d of r.domains) {
+            accrueDomain(d);
+          }
         return true;
       });
 
@@ -148,6 +163,13 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       if (unknowns.length > 0) result.unknowns = { count: unknowns.length };
       results[f] = result;
     }
+    context.domains = Object.fromEntries(
+      Object.entries(domains).sort((a, b) => {
+        if (a[0] < b[0]) return -1;
+        if (a[0] > b[0]) return 1;
+        return 0;
+      }),
+    );
     return results;
   }
 
@@ -156,10 +178,8 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const logger = game.users.find((u) => u.flags[MODULE_ID]?.rolls);
     const srcLog = logger?.flags?.[MODULE_ID];
-    // const srcLog = TEST_LOG;
 
     const myUserId = game.user.id;
-    // const myUserId = TEST_USER_ID;
 
     // remove instance IDs
     let results = {};
