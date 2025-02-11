@@ -137,7 +137,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: critFails.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.rollerId = context.users[r.rollerId].name;
+            if (multiRoller) roll.roller = context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
@@ -149,7 +149,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: fails.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.rollerId = context.users[r.rollerId].name;
+            if (multiRoller) roll.roller = context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
@@ -161,7 +161,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: successes.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.rollerId = context.users[r.rollerId].name;
+            if (multiRoller) roll.roller = context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
