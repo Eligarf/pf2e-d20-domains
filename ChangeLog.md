@@ -1,3 +1,8 @@
+# v0.13.0
+
+- Better tooltips
+- Don't show active session
+
 # v0.12.0
 
 - Filter domain lists to only show domains that apply post-filter

@@ -214,7 +214,7 @@ Hooks.on("renderSettingsConfig", (app, html, data) => {
 });
 
 function initializeLayer() {
-  CONFIG.Canvas.layers.d20LoveMeter = {
+  CONFIG.Canvas.layers.d20Domains = {
     layerClass: InteractionLayer,
     group: "interface",
   };
@@ -300,7 +300,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
       !watcher && game.settings.get(MODULE_ID, "logging")
         ? "fa fa-pen-to-square"
         : "fas fa-dice-d20",
-    layer: "d20LoveMeter",
+    layer: "d20Domains",
     visible: true,
     activeTool: "",
     tools,

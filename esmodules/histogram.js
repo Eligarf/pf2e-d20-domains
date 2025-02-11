@@ -87,9 +87,13 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
 
   filter(context, rawResults) {
     let results = {};
-    const enabled = Object.entries(context.domains).filter(
+    const inDomains = Object.entries(context.domains).filter(
       ([k, v]) => v.enabled,
     );
+    const multiRoller =
+      Object.entries(context.users).filter(([k, v]) => v.enabled).length > 1;
+    const multiType =
+      Object.entries(context.types).filter(([k, v]) => v.enabled).length > 1;
 
     let domains = {};
     function accrueDomain(domain) {
@@ -104,10 +108,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       const rolls = rawResults[f]?.rolls?.filter((r) => {
         if (!context.users[r.rollerId].enabled) return false;
         if (!context.types[r.type].enabled) return false;
-        for (let [k] of enabled) {
+        for (let [k] of inDomains) {
           if (!r?.domains?.includes(k)) return false;
         }
-        if (!context.sessions[r.session].enabled) return false;
+        if (!context.sessions[r.session]?.enabled) return false;
 
         if (r.domains)
           for (let d of r.domains) {
@@ -124,45 +128,71 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         (r) => !("dos" in r) || r.dos === "unknown",
       );
 
-      function dosBy(bucket) {
-        let by = 0;
-        for (let i in bucket) {
-          const result = bucket[i];
-          by += f - result.needed;
-        }
-        return (by / bucket.length).toFixed(1);
-      }
-
       let result = {
         rolls: rolls,
       };
       if (critFails.length > 0) {
         result.criticalFailures = {
           count: critFails.length,
-          by: dosBy(critFails),
+          tooltip: critFails.map((r) => {
+            let roll = {};
+            if ("needed" in r) roll.needed = r.needed;
+            if (multiRoller) roll.rollerId = context.users[r.rollerId].name;
+            if (multiType) roll.type = r.type;
+            return roll;
+          }),
         };
       }
       if (fails.length > 0) {
         result.failures = {
           count: fails.length,
-          by: dosBy(fails),
+          tooltip: fails.map((r) => {
+            let roll = {};
+            if ("needed" in r) roll.needed = r.needed;
+            if (multiRoller) roll.rollerId = context.users[r.rollerId].name;
+            if (multiType) roll.type = r.type;
+            return roll;
+          }),
         };
       }
       if (successes.length > 0) {
         result.successes = {
           count: successes.length,
-          by: dosBy(successes),
+          tooltip: successes.map((r) => {
+            let roll = {};
+            if ("needed" in r) roll.needed = r.needed;
+            if (multiRoller) roll.rollerId = context.users[r.rollerId].name;
+            if (multiType) roll.type = r.type;
+            return roll;
+          }),
         };
       }
       if (crits.length > 0) {
         result.criticalSuccesses = {
           count: crits.length,
-          by: dosBy(crits),
+          tooltip: crits.map((r) => {
+            let roll = {};
+            if ("needed" in r) roll.needed = r.needed;
+            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiType) roll.type = r.type;
+            return roll;
+          }),
         };
       }
-      if (unknowns.length > 0) result.unknowns = { count: unknowns.length };
+      if (unknowns.length > 0)
+        result.unknowns = {
+          count: unknowns.length,
+          tooltip: unknowns.map((r) => {
+            let roll = {};
+            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiType) roll.type = r.type;
+            return roll;
+          }),
+        };
       results[f] = result;
     }
+    context.multiRoller = multiRoller;
+    context.multiType = multiType;
     context.domains = Object.fromEntries(
       Object.entries(domains).sort((a, b) => {
         if (a[0] < b[0]) return -1;
@@ -215,6 +245,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     function accrueSession(session) {
       if (session in Histogram.STATE.sessions) return;
+      if (session === srcLog.session) return;
       Histogram.STATE.sessions[session] = {
         started: new Date(srcLog.sessions[session].started),
         ended: new Date(srcLog.sessions[session].ended),
