@@ -1,3 +1,7 @@
+# v0.14.0
+
+- Add versus mode to show rolls vs targets rather than by roller
+
 # v0.13.1
 
 - Fix toolbelt parse error

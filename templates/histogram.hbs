@@ -61,6 +61,11 @@
   <br />
   <div>
     <div>
+      <h3>{{localize "pf2e-d20-domains.histogram.versus"}}</h3>
+      <input data-action="onVersus" type="checkbox" name="versus", {{checked versus}}/>
+      <label>{{localize "pf2e-d20-domains.histogram.versus-checkbox"}}
+    </div>
+    <div>
       <h3>{{localize "pf2e-d20-domains.histogram.users"}}</h3>
       {{#each users}}
         <input

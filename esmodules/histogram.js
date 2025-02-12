@@ -23,6 +23,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     types: {},
     domains: {},
     sessions: {},
+    versus: false,
   };
 
   static DEFAULT_OPTIONS = {
@@ -38,6 +39,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       onUser: Histogram.onUser,
       onType: Histogram.onType,
       onDomain: Histogram.onDomain,
+      onVersus: Histogram.onVersus,
     },
     window: {
       icon: "fas fa-chart",
@@ -85,6 +87,13 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     await this.render();
   }
 
+  static async onVersus(event, target) {
+    let { name, checked } = target;
+    name = name.split("-").slice(1).join("-");
+    Histogram.STATE.versus = checked;
+    await this.render();
+  }
+
   filter(context, rawResults) {
     let results = {};
     const inDomains = Object.entries(context.domains).filter(
@@ -106,7 +115,11 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
 
     for (let f of Object.keys(rawResults)) {
       const rolls = rawResults[f]?.rolls?.filter((r) => {
-        if (!context.users[r.rollerId].enabled) return false;
+        if (context.versus) {
+          if (!context.users[r.vsId].enabled) return false;
+        } else {
+          if (!context.users[r.rollerId].enabled) return false;
+        }
         if (!context.types[r.type].enabled) return false;
         for (let [k] of inDomains) {
           if (!r?.domains?.includes(k)) return false;
@@ -137,7 +150,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: critFails.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiRoller)
+              roll.roller = context.versus
+                ? "vs-" + context.users[r.vsId].name
+                : context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
@@ -149,7 +165,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: fails.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiRoller)
+              roll.roller = context.versus
+                ? "vs-" + context.users[r.vsId].name
+                : context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
@@ -161,7 +180,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: successes.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiRoller)
+              roll.roller = context.versus
+                ? "vs-" + context.users[r.vsId].name
+                : context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
@@ -173,7 +195,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           tooltip: crits.map((r) => {
             let roll = {};
             if ("needed" in r) roll.needed = r.needed;
-            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiRoller)
+              roll.roller = context.versus
+                ? "vs-" + context.users[r.vsId].name
+                : context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),
@@ -184,7 +209,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
           count: unknowns.length,
           tooltip: unknowns.map((r) => {
             let roll = {};
-            if (multiRoller) roll.roller = context.users[r.rollerId].name;
+            if (multiRoller)
+              roll.roller = context.versus
+                ? "vs-" + context.users[r.vsId].name
+                : context.users[r.rollerId].name;
             if (multiType) roll.type = r.type;
             return roll;
           }),

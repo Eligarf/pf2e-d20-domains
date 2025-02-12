@@ -33,7 +33,9 @@
       "sessions": "Sessions",
       "users": "Users",
       "types": "Types",
-      "domains": "Domains"
+      "domains": "Domains",
+      "versus": "Versus Mode",
+      "versus-checkbox": "Filter users using who was targeted rather than who rolled"
     },
     "timeline": {
       "title": "Rolls timeline"
