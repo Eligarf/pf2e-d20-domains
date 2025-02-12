@@ -173,7 +173,7 @@ async function initializeLogging() {
     const flatcheck =
       delta?.flags?.["pf2e-flatcheck-helper"]?.flatchecks?.targets;
     if (flatcheck) return await onFlatCheckHelper(message, delta);
-    // log('updateChatMessage', { message, delta });
+    // log("updateChatMessage", { message, delta });
   });
 }
 
@@ -241,7 +241,7 @@ async function onToolBelt(message, toolbelt) {
   const saves = toolbelt?.targetHelper?.saves;
   const actorUuid = message?.flags?.pf2e?.origin?.actor;
   const actor = actorUuid ? await fromUuid(actorUuid) : null;
-  const vs = game.users.find((u) => u.character?.id === actor.id)?.id;
+  const vs = game.users.find((u) => u.character?.id === actor?.id)?.id;
   for (const tokenId in saves) {
     const token = canvas.scene.tokens.get(tokenId);
     const roller = token

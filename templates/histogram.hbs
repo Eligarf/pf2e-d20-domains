@@ -18,33 +18,33 @@
           >
             {{#if criticalSuccesses}}
               <tr>
-                <td class="pf2e-d20-domains-success-critical"><span data-tooltip="<div><table>{{#each criticalSuccesses.tooltip}}<tr>{{#if roller}}<td>{{roller}}</td>{{/if}}{{#if type}}<td>{{type}}</td>{{/if}}<td>={{needed}}</td></tr>{{/each}}</table><div>">
+                <td class="pf2e-d20-domains-success-critical"><span data-tooltip="<div><table>{{#each criticalSuccesses.tooltip}}<tr>{{#if roller}}<td>{{roller}}:</td>{{/if}}{{#if type}}<td>{{type}}:</td>{{/if}}<td>{{needed}}</td></tr>{{/each}}</table><div>">
                     {{criticalSuccesses.count}}
                   </span></td>
               </tr>
             {{/if}}
             {{#if successes}}
               <tr>
-                <td class="pf2e-d20-domains-success"><span data-tooltip="<div><table>{{#each successes.tooltip}}<tr>{{#if roller}}<td>{{roller}}</td>{{/if}}{{#if type}}<td>{{type}}</td>{{/if}}<td>={{needed}}</td></tr>{{/each}}</table><div>">
+                <td class="pf2e-d20-domains-success"><span data-tooltip="<div><table>{{#each successes.tooltip}}<tr>{{#if roller}}<td>{{roller}}:</td>{{/if}}{{#if type}}<td>{{type}}:</td>{{/if}}<td>{{needed}}</td></tr>{{/each}}</table><div>">
                     {{successes.count}}</span></td>
               </tr>
             {{/if}}
             {{#if failures}}
               <tr>
-                <td class="pf2e-d20-domains-failure"><span data-tooltip="<div><table>{{#each failures.tooltip}}<tr>{{#if roller}}<td>{{roller}}</td>{{/if}}{{#if type}}<td>{{type}}</td>{{/if}}<td>={{needed}}</td></tr>{{/each}}</table><div>">
+                <td class="pf2e-d20-domains-failure"><span data-tooltip="<div><table>{{#each failures.tooltip}}<tr>{{#if roller}}<td>{{roller}}:</td>{{/if}}{{#if type}}<td>{{type}}:</td>{{/if}}<td>{{needed}}</td></tr>{{/each}}</table><div>">
                     {{failures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if criticalFailures}}
               <tr>
-                <td class="pf2e-d20-domains-failure-critical"><span data-tooltip="<div><table>{{#each criticalFailures.tooltip}}<tr>{{#if roller}}<td>{{roller}}</td>{{/if}}{{#if type}}<td>{{type}}</td>{{/if}}<td>={{needed}}</td></tr>{{/each}}</table><div>">
+                <td class="pf2e-d20-domains-failure-critical"><span data-tooltip="<div><table>{{#each criticalFailures.tooltip}}<tr>{{#if roller}}<td>{{roller}}:</td>{{/if}}{{#if type}}<td>{{type}}:</td>{{/if}}<td>{{needed}}</td></tr>{{/each}}</table><div>">
                   
                     {{criticalFailures.count}}</span></td>
               </tr>
             {{/if}}
             {{#if unknowns}}
               <tr>
-                <td class="pf2e-d20-domains-unknown"><span data-tooltip="<div><table>{{#each unknowns.tooltip}}<tr>{{#if roller}}<td>{{roller}}</td>{{/if}}{{#if type}}<td>{{type}}</td>{{/if}}</tr>{{/each}}</table><div>">
+                <td class="pf2e-d20-domains-unknown"><span data-tooltip="<div><table>{{#each unknowns.tooltip}}<tr>{{#if roller}}:<td>{{roller}}</td>{{/if}}{{#if type}}<td>{{type}}</td>{{/if}}</tr>{{/each}}</table><div>">
                   {{unknowns.count}}</span></td>
               </tr>
             {{/if}}

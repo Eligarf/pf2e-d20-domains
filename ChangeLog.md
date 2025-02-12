@@ -1,3 +1,7 @@
+# v0.13.1
+
+- Fix toolbelt parse error
+
 # v0.13.0
 
 - Better tooltips
