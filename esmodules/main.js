@@ -257,16 +257,17 @@ Hooks.on("getSceneControlButtons", (controls) => {
       },
     );
   }
-  tools.push({
-    icon: "fas fa-chart-simple",
-    name: `histogram`,
-    title: `${MODULE_ID}.control.histogram`,
-    visible: true,
-    toggle: true,
-    onClick: async () => {
-      await doHistogram();
-    },
-  });
+  if (logger)
+    tools.push({
+      icon: "fas fa-chart-simple",
+      name: `histogram`,
+      title: `${MODULE_ID}.control.histogram`,
+      visible: true,
+      toggle: true,
+      onClick: async () => {
+        await doHistogram();
+      },
+    });
   /* tools.push({
     icon: "fas fa-timeline",
     name: `timeline`,

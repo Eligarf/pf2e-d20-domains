@@ -22,6 +22,7 @@ const TABLE = [
 
 let g_sessionUuid;
 let g_sessionWarned = false;
+let g_warned = false;
 
 async function createSession() {
   g_sessionUuid = foundry.utils.randomID();
@@ -99,6 +100,14 @@ async function recordRoll({
   isReroll = false,
   domains = [],
 }) {
+  if (!game.settings.get(MODULE_ID, "logging") && !g_warned) {
+    ui.notifications.warn(
+      game.i18n.localize(`${MODULE_ID}.notifications.noSession`),
+    );
+    g_warned = true;
+    return;
+  }
+
   if (!g_sessionUuid) {
     if (!g_sessionWarned) {
       g_sessionWarned = true;
@@ -136,8 +145,6 @@ async function initializeLogging() {
   g_sessionUuid = game.user.flags[MODULE_ID]?.session;
 
   Hooks.on("createChatMessage", async (message, options, id) => {
-    if (!game.settings.get(MODULE_ID, "logging")) return;
-
     const roll = message.rolls[0];
     // log('createChatMessage', { message, roll });
     if (!roll) return;
@@ -165,8 +172,6 @@ async function initializeLogging() {
   });
 
   Hooks.on("updateChatMessage", async (message, delta, options, id) => {
-    if (!game.settings.get(MODULE_ID, "logging")) return;
-
     const toolbelt = delta?.flags?.["pf2e-toolbelt"];
     if (toolbelt) return await onToolBelt(message, toolbelt);
 
