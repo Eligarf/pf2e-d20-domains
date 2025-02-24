@@ -21,8 +21,6 @@ const TABLE = [
 ];
 
 let g_sessionUuid;
-let g_sessionWarned = false;
-let g_warned = false;
 
 async function createSession() {
   g_sessionUuid = foundry.utils.randomID();
@@ -74,8 +72,6 @@ async function endSession() {
   }
 
   await User.updateDocuments([update]);
-
-  g_sessionWarned = false;
 }
 
 async function eraseData() {
@@ -100,23 +96,8 @@ async function recordRoll({
   isReroll = false,
   domains = [],
 }) {
-  if (!game.settings.get(MODULE_ID, "logging") && !g_warned) {
-    ui.notifications.warn(
-      game.i18n.localize(`${MODULE_ID}.notifications.noSession`),
-    );
-    g_warned = true;
-    return;
-  }
-
-  if (!g_sessionUuid) {
-    if (!g_sessionWarned) {
-      g_sessionWarned = true;
-      ui.notifications.warn(
-        game.i18n.localize(`${MODULE_ID}.notifications.noSession`),
-      );
-    }
-    return;
-  }
+  if (!g_sessionUuid) startLogging();
+  else if (!game.settings.get(MODULE_ID, "logging")) return;
 
   const gmId = getGM().id;
   const rollerId = roller ?? gmId;
