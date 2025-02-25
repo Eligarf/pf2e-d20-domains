@@ -16,15 +16,13 @@ async function doHistogram() {
 class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(object, options = {}) {
     super(object, options);
-  }
 
-  static STATE = {
-    users: {},
-    types: {},
-    domains: {},
-    sessions: {},
-    versus: false,
-  };
+    this.users = {};
+    this.types = {};
+    this.domains = {};
+    this.sessions = {};
+    this.versus = false;
+  }
 
   static DEFAULT_OPTIONS = {
     id: `${MODULE_ID}-histogram`,
@@ -61,36 +59,35 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
   static async onUser(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.users[name].enabled = checked;
+    this.users[name].enabled = checked;
     await this.render();
   }
 
   static async onType(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.types[name].enabled = checked;
+    this.types[name].enabled = checked;
     await this.render();
   }
 
   static async onDomain(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.domains[name].enabled = checked;
-    log("domains", { name, checked });
+    this.domains[name].enabled = checked;
     await this.render();
   }
 
   static async onSession(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.sessions[name].enabled = checked;
+    this.sessions[name].enabled = checked;
     await this.render();
   }
 
   static async onVersus(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
-    Histogram.STATE.versus = checked;
+    this.versus = checked;
     await this.render();
   }
 
@@ -251,30 +248,30 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const isGM = game.user.isGM;
     const gm = getGM();
-    function accrueUserName(id) {
-      if (id in Histogram.STATE.users) return;
-      Histogram.STATE.users[id] = {
+    function accrueUserName(users, id) {
+      if (id in users) return;
+      users[id] = {
         name: game.users.get(id)?.name ?? id,
         enabled: id === myUserId || isGM,
       };
     }
-    function accrueType(type) {
-      if (type in Histogram.STATE.types) return;
-      Histogram.STATE.types[type] = {
+    function accrueType(types, type) {
+      if (type in types) return;
+      types[type] = {
         enabled: true,
       };
     }
-    function accrueDomain(domain) {
+    function accrueDomain(domains, domain) {
       if (["all", "check"].includes(domain)) return;
-      if (domain in Histogram.STATE.domains) return;
-      Histogram.STATE.domains[domain] = {
+      if (domain in domains) return;
+      domains[domain] = {
         enabled: false,
       };
     }
-    function accrueSession(session) {
-      if (session in Histogram.STATE.sessions) return;
+    function accrueSession(sessions, session) {
+      if (session in sessions) return;
       if (session === srcLog.session) return;
-      Histogram.STATE.sessions[session] = {
+      sessions[session] = {
         started: new Date(srcLog.sessions[session].started),
         ended: new Date(srcLog.sessions[session].ended),
         enabled: true,
@@ -284,47 +281,54 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     for (let face of Object.values(results)) {
       for (let i of face.rolls) {
         if (!i.rollerId) i.rollerId = gm.id;
-        accrueUserName(i.rollerId);
+        accrueUserName(this.users, i.rollerId);
         if (!i.vsId) i.vsId = gm.id;
-        accrueUserName(i.vsId);
-        accrueType(i.type);
+        accrueUserName(this.users, i.vsId);
+        accrueType(this.types, i.type);
         if (i.domains)
           for (let d of i.domains) {
-            accrueDomain(d);
+            accrueDomain(this.domains, d);
           }
-        accrueSession(i.session);
+        accrueSession(this.sessions, i.session);
       }
     }
 
-    Histogram.STATE.sessions = Object.fromEntries(
-      Object.entries(Histogram.STATE.sessions).sort((a, b) => {
+    this.sessions = Object.fromEntries(
+      Object.entries(this.sessions).sort((a, b) => {
         if (a[1].started < b[1].started) return -1;
         if (a[1].started > b[1].started) return 1;
         return 0;
       }),
     );
-    Histogram.STATE.users = Object.fromEntries(
-      Object.entries(Histogram.STATE.users).sort((a, b) => {
+    this.users = Object.fromEntries(
+      Object.entries(this.users).sort((a, b) => {
         if (a[1].name < b[1].name) return -1;
         if (a[1].name > b[1].name) return 1;
         return 0;
       }),
     );
-    Histogram.STATE.types = Object.fromEntries(
-      Object.entries(Histogram.STATE.types).sort((a, b) => {
+    this.types = Object.fromEntries(
+      Object.entries(this.types).sort((a, b) => {
         if (a[0] < b[0]) return -1;
         if (a[0] > b[0]) return 1;
         return 0;
       }),
     );
-    Histogram.STATE.domains = Object.fromEntries(
-      Object.entries(Histogram.STATE.domains).sort((a, b) => {
+    this.domains = Object.fromEntries(
+      Object.entries(this.domains).sort((a, b) => {
         if (a[0] < b[0]) return -1;
         if (a[0] > b[0]) return 1;
         return 0;
       }),
     );
-    context = { ...context, ...Histogram.STATE };
+    context = {
+      ...context,
+      sessions: this.sessions,
+      users: this.users,
+      types: this.types,
+      domains: this.domains,
+      versus: this.versus,
+    };
     context.filteredResults = this.filter(context, results);
 
     return context;
