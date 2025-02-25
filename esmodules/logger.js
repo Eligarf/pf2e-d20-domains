@@ -96,7 +96,8 @@ async function recordRoll({
   isReroll = false,
   domains = [],
 }) {
-  if (!g_sessionUuid) startLogging();
+  if (!g_sessionUuid && game.users.filter((u) => u.active).length > 1)
+    startLogging();
   else if (!game.settings.get(MODULE_ID, "logging")) return;
 
   const gmId = getGM().id;

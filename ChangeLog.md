@@ -1,3 +1,11 @@
+# v0.14.3
+
+- Only autostart sessions when more than one user is active
+
+# v0.14.2
+
+- Autostart sessions
+
 # v0.14.0
 
 - Add versus mode to show rolls vs targets rather than by roller
