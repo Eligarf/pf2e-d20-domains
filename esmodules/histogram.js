@@ -20,7 +20,8 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     this.users = {};
     this.types = {};
     this.domains = {};
-    this.sessions = {};
+    this.session = null;
+    this.sessions = { all: { started: "All Sessions", selected: false } };
     this.versus = false;
   }
 
@@ -33,7 +34,6 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       closeOnSubmit: false,
     },
     actions: {
-      onSession: Histogram.onSession,
       onUser: Histogram.onUser,
       onType: Histogram.onType,
       onDomain: Histogram.onDomain,
@@ -77,13 +77,6 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     await this.render();
   }
 
-  static async onSession(event, target) {
-    let { name, checked } = target;
-    name = name.split("-").slice(1).join("-");
-    this.sessions[name].enabled = checked;
-    await this.render();
-  }
-
   static async onVersus(event, target) {
     let { name, checked } = target;
     name = name.split("-").slice(1).join("-");
@@ -121,7 +114,8 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         for (let [k] of inDomains) {
           if (!r?.domains?.includes(k)) return false;
         }
-        if (!context.sessions[r.session]?.enabled) return false;
+        if (context.session !== "all" && r.session !== context.session)
+          return false;
 
         if (r.domains)
           for (let d of r.domains) {
@@ -273,8 +267,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       if (session === srcLog.session) return;
       sessions[session] = {
         started: new Date(srcLog.sessions[session].started),
-        ended: new Date(srcLog.sessions[session].ended),
-        enabled: true,
+        selected: false,
       };
     }
 
@@ -293,13 +286,17 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     }
 
-    this.sessions = Object.fromEntries(
-      Object.entries(this.sessions).sort((a, b) => {
-        if (a[1].started < b[1].started) return -1;
-        if (a[1].started > b[1].started) return 1;
-        return 0;
-      }),
-    );
+    const sortedSessions = Object.entries(this.sessions).sort((a, b) => {
+      if (a[0] === "all" || a[1].started > b[1].started) return -1;
+      if (b[0] === "all" || a[1].started < b[1].started) return 1;
+      return 0;
+    });
+    this.session =
+      this.session ??
+      (sortedSessions.length > 1 ? sortedSessions[1][0] : sortedSessions[0][0]);
+    this.sessions = Object.fromEntries(sortedSessions);
+    this.sessions[this.session].selected = true;
+
     this.users = Object.fromEntries(
       Object.entries(this.users).sort((a, b) => {
         if (a[1].name < b[1].name) return -1;
@@ -307,6 +304,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         return 0;
       }),
     );
+
     this.types = Object.fromEntries(
       Object.entries(this.types).sort((a, b) => {
         if (a[0] < b[0]) return -1;
@@ -314,6 +312,7 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         return 0;
       }),
     );
+
     this.domains = Object.fromEntries(
       Object.entries(this.domains).sort((a, b) => {
         if (a[0] < b[0]) return -1;
@@ -321,8 +320,10 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
         return 0;
       }),
     );
+
     context = {
       ...context,
+      session: this.session,
       sessions: this.sessions,
       users: this.users,
       types: this.types,
@@ -332,6 +333,16 @@ class Histogram extends HandlebarsApplicationMixin(ApplicationV2) {
     context.filteredResults = this.filter(context, results);
 
     return context;
+  }
+
+  _onRender(context, options) {
+    const sessionElement = this.element.querySelector(".session");
+    sessionElement.addEventListener("change", async (event) => {
+      const selection = event.target?.value;
+      if (!selection) return;
+      this.session = selection;
+      await this.render();
+    });
   }
 
   static async #onSubmit(event, form, formData) {

@@ -93,15 +93,11 @@
     <br />
     <div>
       <h3>{{localize "pf2e-d20-domains.histogram.sessions"}}</h3>
-      {{#each sessions}}
-        <input
-          data-action="onSession"
-          type="checkbox"
-          name="session-{{@key}}"
-          {{checked enabled}}
-        />
-        <label>{{started}}</label>
-      {{/each}}
+      <select name="session" class="session">
+        {{#each sessions}}
+          <option value="{{@key}}" {{#if selected}}selected{{/if}}>{{started}}</option>
+        {{/each}}
+      </select>
     </div>
     <br />
     <div>
